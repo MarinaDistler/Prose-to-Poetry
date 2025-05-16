@@ -34,12 +34,22 @@ meters = {
     'dolnik2': 'дольник - стихотворный размер с переменным количеством безударных слогов между ударными',
 }
 
+short_meters = {
+    'ямб': 'ямб',
+    'iambos': 'ямб',
+    'choreios': 'хорей',
+    'dolnik3': 'дольник',
+    'amphibrachys': 'амфибрахий',
+    'anapaistos': 'анапест',
+    'daktylos': 'дактиль',
+    'dolnik2': 'дольник',
+}
+
 def get_prompt(text, scheme='ABAB', meter='ямб'):
-    return f'''
-            Рифмовка: {scheme}
-            Размер: {meters[meter]}
-            Исходный текст: {text}
-            '''
+    return f''' Рифмовка: {scheme}\n Размер: {meters[meter]}\n Исходный текст: {text}'''
+
+def get_train_prompt(text, scheme='ABAB', meter='ямб'):
+    return f'''Рифмовка: {scheme}\n Размер: {short_meters[meter]}\n Исходный текст: {text}'''
 
 def use_model_batch(func, texts, from_id=0):
     answers = {}
@@ -72,8 +82,7 @@ def generate_model_answers(model_func, file_path='test_text.txt', from_id=0, to_
 
 def format_chat_template(row, tokenizer):
     row_json = [
-        {"role": "system", "content": system_instruction},
-        {"role": "user", "content": get_prompt(row['input'], row['rhyme_scheme'], row['meter'])},
+        {"role": "user", "content": get_train_prompt(row['input'], row['rhyme_scheme'], row['meter'])},
         {"role": "assistant", "content": '\n'.join(ast.literal_eval(row['stanzas']))}
     ]
     row["text"] = tokenizer.apply_chat_template(row_json, tokenize=False)

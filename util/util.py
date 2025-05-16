@@ -8,7 +8,7 @@ import shutil
 from transformers import TrainerCallback
 import ast
 
-from util.promts import get_prompt, system_instruction
+from util.promts import get_train_prompt
 
 def print_options(opt, parser):
     message = ''
@@ -69,9 +69,8 @@ class ChatGenerationCallback(TrainerCallback):
         for i in range(min(self.num_examples, len(self.eval_dataset))):
             row = self.eval_dataset.iloc[i]
             
-            user_prompt = get_prompt(row['input'], row['rhyme_scheme'], row['meter'])
+            user_prompt = get_train_prompt(row['input'], row['rhyme_scheme'], row['meter'])
             messages = [
-                {"role": "system", "content": system_instruction},
                 {"role": "user", "content": user_prompt}
             ]
             text = self.tokenizer.apply_chat_template(
