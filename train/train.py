@@ -46,8 +46,8 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
 
     tokenizer.pad_token = tokenizer.eos_token
 
-    if self.model == 't-lite':
-        fact_bach_size = 1:
+    if args.model == 't-lite':
+        fact_bach_size = 1
     else:
         fact_bach_size = 2
 
@@ -55,12 +55,12 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         output_dir=output_dir,
         per_device_train_batch_size=fact_bach_size,
         per_device_eval_batch_size=fact_bach_size,
-        gradient_accumulation_steps=args.batch_size / fact_bach_size,
+        gradient_accumulation_steps=args.batch_size // fact_bach_size,
         optim="paged_adamw_32bit",
         num_train_epochs=args.epochs,
         eval_strategy="steps",
-        eval_steps=1000,
-        logging_steps=100,
+        eval_steps=1000 // args.batch_size,
+        logging_steps=100 // args.batch_size,
         warmup_steps=10,
         logging_strategy="steps",
         learning_rate=args.lr,
@@ -69,7 +69,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         group_by_length=True,
         report_to="wandb",
         save_strategy="steps",
-        save_steps=1000,              # Сохранять каждые 500 шагов
+        save_steps=1000 // args.batch_size,              # Сохранять каждые 500 шагов
         save_total_limit=1,          # Макс. число чекпоинтов (старые удаляются)
         load_best_model_at_end=True, # Загружать лучшую модель в конце
         metric_for_best_model="eval_loss",  # Критерий выбора лучшей модели
