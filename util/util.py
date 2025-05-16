@@ -32,52 +32,22 @@ def seed_everything(seed: int = 1729) -> None:
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
 
-class WandbLogger:
-    def __init__(self, name='base-name', project='Project-Poetry'):
-        self.name = name
-        self.project = project
-
-    def start_logging(self, config=None):
-        wandb.login(key=os.environ['WB_TOKEN'].strip(), relogin=True)
-        entity = os.environ.get('WANDB_ENTITY', None)
-        if entity is None:
-            wandb.init(
-                project=self.project,
-                name=self.name,
-                config=config
-            )
-        else:
-            wandb.init(
-                project=self.project,
-                name=self.name,
-                config=config,
-                entity=entity
-            )
-        self.wandb = wandb
-        self.run_dir = self.wandb.run.dir
-        self.train_step = 0
-
-    def log(self, scalar_name: str, scalar: tp.Any):
-        self.wandb.log({scalar_name: scalar}, step=self.train_step, commit=False)
-
-    def log_scalars(self, scalars: dict):
-        self.wandb.log(scalars, step=self.train_step, commit=False)
-
-    def next_step(self):
-        self.train_step += 1
-
-    def set_step(self, step):
-        self.train_step = step
-
-    def save(self, file_path, save_online=True):
-        file = os.path.basename(file_path)
-        new_path = os.path.join(self.run_dir, file)
-        shutil.copy2(file_path, new_path)
-        if save_online:
-            self.wandb.save(new_path)
-
-    def __del__(self):
-        self.wandb.finish()
+def start_wandb(name, project, config=None):
+    wandb.login(key=os.environ['WB_TOKEN'].strip(), relogin=True)
+    entity = os.environ.get('WANDB_ENTITY', None)
+    if entity is None:
+        wandb.init(
+            project=project,
+            name=name,
+            config=config
+        )
+    else:
+        wandb.init(
+            project=project,
+            name=name,
+            config=config,
+            entity=entity
+        )
 
 
 

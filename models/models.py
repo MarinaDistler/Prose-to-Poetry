@@ -3,9 +3,8 @@ import torch
 
 from util.promts import get_prompt
 
-class ModelTLite:
-    def __init__(self, quantization=False):
-        model_name = "t-tech/T-lite-it-1.0"
+class BaseModel:
+    def __init__(self, model_name, quantization=False):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.quantization = quantization
         if quantization: 
@@ -27,10 +26,9 @@ class ModelTLite:
             ).to('cuda')
 
     def use(self, text, scheme='ABAB', meter='ямб'):
-        prompt = get_prompt(text, scheme, meter)
         messages = [
             {"role": "system", "content": system_instruction},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": get_prompt(text, scheme, meter)}
         ]
         text = self.tokenizer.apply_chat_template(
             messages,
@@ -41,7 +39,7 @@ class ModelTLite:
 
         generated_ids = self.model.generate(
             **model_inputs,
-            max_new_tokens=256
+            max_new_tokens=512
         )
         generated_ids = [
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
@@ -50,3 +48,10 @@ class ModelTLite:
         response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
         return response
 
+class ModelQwen(BaseModel):
+    def __init__(self, quantization=False):
+        super().__init__('Qwen/Qwen2.5-3B-Instruct', quantization)
+
+class ModelTLite(BaseModel):
+    def __init__(self, quantization=False):
+        super().__init__("t-tech/T-lite-it-1.0", quantization)

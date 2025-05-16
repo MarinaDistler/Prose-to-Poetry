@@ -24,9 +24,9 @@ from datetime import datetime
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from models.t_lite import ModelTLite
+from models.models import ModelTLite, ModelQwen
 from util.promts import format_chat_template 
-from util.util import print_options, seed_everything, WandbLogger, ChatGenerationCallback
+from util.util import print_options, seed_everything, start_wandb, ChatGenerationCallback
 
 
 def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
@@ -37,10 +37,10 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
     else:
         run_name = f"{args.name_run}-{datetime.now().strftime('%m-%d-%H-%M')}"
     output_dir = args.output_dir + run_name
-    logger = WandbLogger(name=run_name, project='Poetry')
-    config = vars(args)
-    logger.start_logging({key: config[key] for key in set(config.keys()) - {'name_run'}})
-    logger.save(__file__)
+    start_wandb(
+        run_name, project='Poetry', 
+        config={key: config[key] for key in set(vars(args).keys()) - {'name_run'}}
+    )
 
     tokenizer.pad_token = tokenizer.eos_token
 
@@ -90,7 +90,10 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
 def main(args):
     seed_everything()
 
-    model = ModelTLite(quantization=True)
+    if args.model == 't-lite':
+        model = ModelTLite(quantization=True)
+    elif args.model == 'qwen':
+        model = ModelQwen(quantization=True)
 
     # LoRA config / адаптер 
     peft_config = LoraConfig(
@@ -141,6 +144,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_dir', type=str, default='output/')
     parser.add_argument('--final_test_file', type=str, default='dataset/test_text.txt')
     parser.add_argument('--checkpoint', type=str, default='')
+    parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
 
     args, unknown1 = parser.parse_known_args()
 
