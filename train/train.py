@@ -46,11 +46,16 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
 
     tokenizer.pad_token = tokenizer.eos_token
 
+    if self.model == 't-lite':
+        fact_bach_size = 1:
+    else:
+        fact_bach_size = 2
+
     training_arguments = SFTConfig(
         output_dir=output_dir,
-        per_device_train_batch_size=1,
-        per_device_eval_batch_size=1,
-        gradient_accumulation_steps=2,
+        per_device_train_batch_size=fact_bach_size,
+        per_device_eval_batch_size=fact_bach_size,
+        gradient_accumulation_steps=args.batch_size / fact_bach_size,
         optim="paged_adamw_32bit",
         num_train_epochs=args.epochs,
         eval_strategy="steps",
@@ -58,7 +63,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         logging_steps=100,
         warmup_steps=10,
         logging_strategy="steps",
-        learning_rate=2e-4,
+        learning_rate=args.lr,
         fp16=False,
         bf16=False,
         group_by_length=True,
@@ -138,6 +143,8 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoint', type=str, default='')
     parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
     parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--lr', type=int, default=3e-5)
+    parser.add_argument('--batch_size', type=int, default=32)
 
     args, unknown1 = parser.parse_known_args()
 
