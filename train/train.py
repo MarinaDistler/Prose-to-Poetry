@@ -17,7 +17,7 @@ from peft import (
     prepare_model_for_kbit_training,
     get_peft_model,
 )
-from trl import SFTTrainer, setup_chat_format
+from trl import SFTTrainer, setup_chat_format, SFTConfig
 from datasets import Dataset
 import pandas as pd
 from datetime import datetime
@@ -31,28 +31,30 @@ from util.util import print_options, seed_everything, start_wandb, ChatGeneratio
 
 def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
     checkpoint = None if args.checkpoint == '' else args.checkpoint
+    args.name_run = args.name_run if args.name_run != '' else args.model
     if checkpoint is not None:
         print(f'Use checkpoint {checkpoint}')
         run_name = f"{args.name_run}-from-{checkpoint}"
     else:
         run_name = f"{args.name_run}-{datetime.now().strftime('%m-%d-%H-%M')}"
     output_dir = args.output_dir + run_name
+    config = vars(args)
     start_wandb(
         run_name, project='Poetry', 
-        config={key: config[key] for key in set(vars(args).keys()) - {'name_run'}}
+        config={key: config[key] for key in set(config.keys()) - {'name_run'}}
     )
 
     tokenizer.pad_token = tokenizer.eos_token
 
-    training_arguments = TrainingArguments(
+    training_arguments = SFTConfig(
         output_dir=output_dir,
         per_device_train_batch_size=1,
         per_device_eval_batch_size=1,
         gradient_accumulation_steps=2,
         optim="paged_adamw_32bit",
-        num_train_epochs=26,
+        num_train_epochs=args.epochs,
         eval_strategy="steps",
-        eval_steps=500,
+        eval_steps=1000,
         logging_steps=100,
         warmup_steps=10,
         logging_strategy="steps",
@@ -62,10 +64,12 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         group_by_length=True,
         report_to="wandb",
         save_strategy="steps",
-        save_steps=500,              # Сохранять каждые 500 шагов
+        save_steps=1000,              # Сохранять каждые 500 шагов
         save_total_limit=1,          # Макс. число чекпоинтов (старые удаляются)
         load_best_model_at_end=True, # Загружать лучшую модель в конце
         metric_for_best_model="eval_loss",  # Критерий выбора лучшей модели
+        max_seq_length=512,
+        packing= False,
     )
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer,
@@ -77,12 +81,10 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         train_dataset=datasets["train"],
         eval_dataset=datasets["test"],
         peft_config=peft_config, # сам адаптер, который создали ранее
-        #max_seq_length=512,
         #dataset_text_field="chat",
         data_collator=data_collator, # был импортирован
         args=training_arguments,
         callbacks=[ChatGenerationCallback(tokenizer, clean_eval_data, output_dir)],
-        #packing= False,
     )
     trainer.train(resume_from_checkpoint=checkpoint)
     return trainer
@@ -105,9 +107,9 @@ def main(args):
         target_modules=['up_proj', 'down_proj', 'gate_proj', 'k_proj', 'q_proj', 'v_proj', 'o_proj']
     )
 
-    eval_data = pd.read_csv(args.test_dataset, index_col='Unnamed: 0').rename({'gigachat-max': 'input'}, axis=1)
+    eval_data = pd.read_csv(args.test_dataset, index_col='Unnamed: 0')
     dataset = {
-        'train': pd.read_csv(args.train_dataset, index_col='Unnamed: 0').rename({'gigachat': 'input'}, axis=1),
+        'train': pd.read_csv(args.train_dataset, index_col='Unnamed: 0'),
         'test': eval_data,
     }
 
@@ -124,27 +126,18 @@ def main(args):
     }
 
     trainer = train(model.model, model.tokenizer, dataset, peft_config, eval_data.iloc[:10], args)
-    path_to_save = args.output_dir + "/T-Lite-finetuned/"
-    trainer.save_model(path_to_save)
-    model.model.save_pretrained(path_to_save + 't_lite_finetune.model')
-    model.tokenizer.save_pretrained(path_to_save + 't_lite_finetune_tokenizer')
-    answers = generate_model_answers(
-        lambda text: model.use(text, scheme='ABAB', meter='ямб'), 
-        file_path=args.final_test_file, 
-        from_id=0
-    )
-    answers.to_csv(path_to_save + 'fine_tune_t_lite.csv', index=False)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='train t-lite')
-    parser.add_argument('--name_run', type=str, default='t-lite')
-    parser.add_argument('--train_dataset', type=str, default='dataset/gigachat_all_stanzas_inv.csv')
-    parser.add_argument('--test_dataset', type=str, default='dataset/gigachat_max_all_stanzas_inv.csv')
+    parser.add_argument('--name_run', type=str, default='')
+    parser.add_argument('--train_dataset', type=str, default='dataset/trainset.csv')
+    parser.add_argument('--test_dataset', type=str, default='dataset/testset.csv')
     parser.add_argument('--output_dir', type=str, default='output/')
     parser.add_argument('--final_test_file', type=str, default='dataset/test_text.txt')
     parser.add_argument('--checkpoint', type=str, default='')
     parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
+    parser.add_argument('--epochs', type=int, default=10)
 
     args, unknown1 = parser.parse_known_args()
 

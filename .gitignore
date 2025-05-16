@@ -2,3 +2,4 @@ env-settings
 output
 wandb
 .venv
+*/__pycache__/*
