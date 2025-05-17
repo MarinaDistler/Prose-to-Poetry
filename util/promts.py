@@ -49,7 +49,7 @@ def get_prompt(text, scheme='ABAB', meter='ямб'):
     return f''' Рифмовка: {scheme}\n Размер: {meters[meter]}\n Исходный текст: {text}'''
 
 def get_train_prompt(text, scheme='ABAB', meter='ямб'):
-    return f'''Рифмовка: {scheme}\n Размер: {short_meters[meter]}\n Исходный текст: {text}'''
+    return f'''Преобразуй прозу в стих с параметрами:\n Рифмовка: {scheme}\n Размер: {short_meters[meter]}\n Исходный текст: {text}'''
 
 def use_model_batch(func, texts, from_id=0):
     answers = {}

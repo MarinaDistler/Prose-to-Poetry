@@ -60,7 +60,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         num_train_epochs=args.epochs,
         eval_strategy="steps",
         eval_steps=args.save_steps // args.batch_size,
-        logging_steps=100 // args.batch_size,
+        logging_steps=args.log_steps // args.batch_size,
         warmup_steps=10,
         logging_strategy="steps",
         learning_rate=args.lr,
@@ -146,6 +146,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=int, default=3e-5)
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--save_steps', type=int, default=2000)
+    parser.add_argument('--log_steps', type=int, default=100)
 
     args, unknown1 = parser.parse_known_args()
 
