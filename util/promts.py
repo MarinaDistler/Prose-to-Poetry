@@ -5,8 +5,15 @@ import ast
 system_instruction = '''Вы – талантливый поэт, создающий русскую поэзию. При преобразовании прозы в стихотворение соблюдайте следующие правила:\n''' \
                     '''1. Рифмовка: используйте заданную схему рифм (например, ABAB, AABB и т.д.).\n''' \
                     '''2. Размер: пишите в указанном метре (например, ямбическом или хореическом) и соблюдайте структуру чередования ударных и безударных слогов.\n''' \
-                    '''3. Объём: длина стихотворения должна соответствовать объёму исходного текста.\n''' \
+                    '''3. Объём: стихотворение должно содержать ровно 4 строки.\n''' \
                     '''4. Содержание: сохраняйте ключевые образы, эмоции, детали описаний и действия из исходного текста.\n''' \
+                    '''5. Выразительность: сделайте текст поэтичным и насыщенным, избегая излишней сложности или неестественных конструкций.\n''' \
+                    '''6. Формат: в ответе должно быть исключительно само стихотворение без комментариев.\n'''
+
+system_instruction_generate = '''Вы – талантливый поэт, создающий русскую поэзию. При написании стихотворения соблюдайте следующие правила:\n''' \
+                    '''1. Рифмовка: используйте заданную схему рифм (например, ABAB, AABB и т.д.).\n''' \
+                    '''2. Размер: пишите в указанном метре (например, ямбическом или хореическом) и соблюдайте структуру чередования ударных и безударных слогов.\n''' \
+                    '''3. Объём: стихотворение должно содержать ровно 4 строки.\n''' \
                     '''5. Выразительность: сделайте текст поэтичным и насыщенным, избегая излишней сложности или неестественных конструкций.\n''' \
                     '''6. Формат: в ответе должно быть исключительно само стихотворение без комментариев.\n'''
 
@@ -45,7 +52,9 @@ def get_prompt(text, scheme='ABAB', meter='ямб'):
     return f''' Рифмовка: {scheme}\n Размер: {meters[meter]}\n Исходный текст: {text}'''
 
 def get_train_prompt(text, scheme='ABAB', meter='ямб'):
-    return f'''Преобразуй прозу в стих с параметрами:\n Рифмовка: {scheme}\n Размер: {short_meters[meter]}\n Исходный текст: {text}'''
+    if text is None:
+        return f'''Напиши четверостишие с параметрами:\n Рифмовка: {scheme}\n Размер: {short_meters[meter]}\n'''
+    return f'''Преобразуй прозу в четверостишие с параметрами:\n Рифмовка: {scheme}\n Размер: {short_meters[meter]}\n Исходный текст: {text}'''
 
 def use_model_batch(func, texts, from_id=0):
     answers = {}
@@ -76,11 +85,18 @@ def generate_model_answers(model_func, file_path='test_text.txt', from_id=0, to_
     return pd.concat(answers)
 
 
-def format_chat_template(row, tokenizer):
-    row_json = [
-        {"role": "system", "content": system_instruction},
-        {"role": "user", "content": get_train_prompt(row['input'], row['rhyme_scheme'], row['meter'])},
-        {"role": "assistant", "content": '\n'.join(ast.literal_eval(row['stanzas']))}
-    ]
+def format_chat_template(row, tokenizer, generate=False):
+    if generate:
+        row_json = [
+            {"role": "system", "content": system_instruction_generate},
+            {"role": "user", "content": get_train_prompt(None, row['rhyme_scheme'], row['meter'])},
+            {"role": "assistant", "content": '\n'.join(ast.literal_eval(row['stanzas'])) + '\n'}
+        ]
+    else:
+        row_json = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": get_train_prompt(row['input'], row['rhyme_scheme'], row['meter'])},
+            {"role": "assistant", "content": '\n'.join(ast.literal_eval(row['stanzas'])) + '\n'}
+        ]
     row["text"] = tokenizer.apply_chat_template(row_json, tokenize=False)
     return row

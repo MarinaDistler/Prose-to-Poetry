@@ -37,8 +37,9 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         run_name = f"{args.name_run}-from-{checkpoint}"
     else:
         run_name = f"{args.name_run}-{datetime.now().strftime('%m-%d-%H-%M')}"
-    output_dir = args.output_dir + run_name
+    output_dir = args.output_dir + run_name + ('-pretrain' if args.pretrain else '')
     config = vars(args)
+    project = 'Poetry-pretrain' if args.pretrain else 'Poetry'
     start_wandb(
         run_name, project='Poetry', 
         config={key: config[key] for key in set(config.keys()) - {'name_run'}}
@@ -47,9 +48,9 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
     tokenizer.pad_token = tokenizer.eos_token
 
     if args.model == 't-lite':
-        fact_bach_size = 1
+        fact_bach_size = 8
     else:
-        fact_bach_size = 2
+        fact_bach_size = 16
 
     training_arguments = SFTConfig(
         output_dir=output_dir,
@@ -70,7 +71,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         report_to="wandb",
         save_strategy="steps",
         save_steps=args.save_steps // args.batch_size,              # Сохранять каждые 500 шагов
-        save_total_limit=1,          # Макс. число чекпоинтов (старые удаляются)
+        save_total_limit=2,          # Макс. число чекпоинтов (старые удаляются)
         load_best_model_at_end=True, # Загружать лучшую модель в конце
         metric_for_best_model="eval_loss",  # Критерий выбора лучшей модели
         max_seq_length=512,
@@ -81,6 +82,11 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         mlm=False,
     )
 
+    callbacks = [ChatGenerationCallback(tokenizer, clean_eval_data, output_dir)]
+    if args.pretrain:
+        datasets['test'] = None
+        callbacks = None
+
     trainer = SFTTrainer(
         model=model,
         train_dataset=datasets["train"],
@@ -89,7 +95,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         #dataset_text_field="chat",
         data_collator=data_collator, # был импортирован
         args=training_arguments,
-        callbacks=[ChatGenerationCallback(tokenizer, clean_eval_data, output_dir)],
+        callbacks=callbacks,
     )
     trainer.train(resume_from_checkpoint=checkpoint)
     return trainer
@@ -118,7 +124,7 @@ def main(args):
         'test': eval_data,
     }
 
-    format_chat_template_ = lambda row: format_chat_template(row, model.tokenizer)
+    format_chat_template_ = lambda row: format_chat_template(row, model.tokenizer, args.pretrain)
     dataset['train'] = dataset['train'].apply(
         format_chat_template_, axis=1
     )
@@ -147,6 +153,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--save_steps', type=int, default=2000)
     parser.add_argument('--log_steps', type=int, default=100)
+    parser.add_argument('--pretrain', action='store_true', help='Если установлен, то запусткаентся претрайн на генерации стихов.')
 
     args, unknown1 = parser.parse_known_args()
 
