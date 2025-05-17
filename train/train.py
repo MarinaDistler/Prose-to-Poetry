@@ -59,7 +59,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         optim="paged_adamw_32bit",
         num_train_epochs=args.epochs,
         eval_strategy="steps",
-        eval_steps=1000 // args.batch_size,
+        eval_steps=args.save_steps // args.batch_size,
         logging_steps=100 // args.batch_size,
         warmup_steps=10,
         logging_strategy="steps",
@@ -69,7 +69,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         group_by_length=True,
         report_to="wandb",
         save_strategy="steps",
-        save_steps=1000 // args.batch_size,              # Сохранять каждые 500 шагов
+        save_steps=args.save_steps // args.batch_size,              # Сохранять каждые 500 шагов
         save_total_limit=1,          # Макс. число чекпоинтов (старые удаляются)
         load_best_model_at_end=True, # Загружать лучшую модель в конце
         metric_for_best_model="eval_loss",  # Критерий выбора лучшей модели
@@ -145,6 +145,7 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--lr', type=int, default=3e-5)
     parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--save_steps', type=int, default=2000)
 
     args, unknown1 = parser.parse_known_args()
 
