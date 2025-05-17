@@ -69,10 +69,10 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         bf16=False,
         group_by_length=True,
         report_to="wandb",
-        save_strategy="steps",
+        save_strategy="no" if args.pretrain else 'steps',
         save_steps=args.save_steps // args.batch_size,              # Сохранять каждые 500 шагов
-        save_total_limit=2,          # Макс. число чекпоинтов (старые удаляются)
-        load_best_model_at_end=True, # Загружать лучшую модель в конце
+        save_total_limit=10 if args.pretrain else 2,          # Макс. число чекпоинтов (старые удаляются)
+        load_best_model_at_end=False if args.pretrain else True, # Загружать лучшую модель в конце
         metric_for_best_model="eval_loss",  # Критерий выбора лучшей модели
         max_seq_length=512,
         packing= False,
