@@ -59,7 +59,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         gradient_accumulation_steps=args.batch_size // fact_bach_size,
         optim="paged_adamw_32bit",
         num_train_epochs=args.epochs,
-        eval_strategy="steps",
+        eval_strategy="no" if args.pretrain else 'steps',
         eval_steps=args.save_steps // args.batch_size,
         logging_steps=args.log_steps // args.batch_size,
         warmup_steps=10,
