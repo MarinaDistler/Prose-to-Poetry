@@ -41,7 +41,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
     config = vars(args)
     project = 'Poetry-pretrain' if args.pretrain else 'Poetry'
     start_wandb(
-        run_name, project='Poetry', 
+        run_name, project=project, 
         config={key: config[key] for key in set(config.keys()) - {'name_run'}}
     )
 
@@ -140,7 +140,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='train t-lite')
+    parser = argparse.ArgumentParser(description='train model')
     parser.add_argument('--name_run', type=str, default='')
     parser.add_argument('--train_dataset', type=str, default='dataset/trainset.csv')
     parser.add_argument('--test_dataset', type=str, default='dataset/testset.csv')
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--lr', type=int, default=3e-5)
     parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--save_steps', type=int, default=2000)
+    parser.add_argument('--save_steps', type=int, default=2000)'--save-steps=5000'
     parser.add_argument('--log_steps', type=int, default=100)
     parser.add_argument('--pretrain', action='store_true', help='Если установлен, то запусткаентся претрайн на генерации стихов.')
 
