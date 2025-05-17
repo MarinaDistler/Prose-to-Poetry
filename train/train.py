@@ -151,7 +151,7 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--lr', type=int, default=3e-5)
     parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--save_steps', type=int, default=2000)'--save-steps=5000'
+    parser.add_argument('--save_steps', type=int, default=2000)
     parser.add_argument('--log_steps', type=int, default=100)
     parser.add_argument('--pretrain', action='store_true', help='Если установлен, то запусткаентся претрайн на генерации стихов.')
 
