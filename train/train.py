@@ -44,6 +44,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         run_name, project=project, 
         config={key: config[key] for key in set(config.keys()) - {'name_run'}}
     )
+    print_options(args, None)
 
     tokenizer.pad_token = tokenizer.eos_token
 
