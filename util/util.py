@@ -7,7 +7,7 @@ import wandb
 import shutil
 from transformers import TrainerCallback
 import ast
-from torch.cuda.amp import autocast
+from torch.amp import autocast
 
 from util.promts import get_train_prompt, system_instruction
 
@@ -84,7 +84,7 @@ class ChatGenerationCallback(TrainerCallback):
             model_dtype = next(model.parameters()).dtype
             model_inputs = self.tokenizer([text], return_tensors="pt").to(model.device) 
 
-            with autocast(dtype=torch.bfloat16):
+            with autocast("cuda", dtype=torch.bfloat16):
                 generated_ids = model.generate(
                     **model_inputs,
                     max_new_tokens=256
