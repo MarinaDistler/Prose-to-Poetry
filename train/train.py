@@ -66,7 +66,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         logging_strategy="steps",
         learning_rate=args.lr,
         fp16=False,
-        bf16=False,
+        bf16=True,
         group_by_length=True,
         report_to="wandb",
         save_strategy="no" if args.pretrain else 'steps',
