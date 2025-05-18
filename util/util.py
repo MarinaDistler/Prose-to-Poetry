@@ -7,6 +7,7 @@ import wandb
 import shutil
 from transformers import TrainerCallback
 import ast
+from torch.cuda.amp import autocast
 
 from util.promts import get_train_prompt, system_instruction
 
