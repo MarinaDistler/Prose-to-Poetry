@@ -104,9 +104,9 @@ def main(args):
     seed_everything()
 
     if args.model == 't-lite':
-        model = ModelTLite(quantization=True)
+        model = ModelTLite(quantization=True, path=args.from_pretrain)
     elif args.model == 'qwen':
-        model = ModelQwen(quantization=True)
+        model = ModelQwen(quantization=True, path=args.from_pretrain)
 
     # LoRA config / адаптер 
     peft_config = LoraConfig(
@@ -154,6 +154,7 @@ if __name__ == "__main__":
     parser.add_argument('--save_steps', type=int, default=2000)
     parser.add_argument('--log_steps', type=int, default=100)
     parser.add_argument('--pretrain', action='store_true', help='Если установлен, то запусткаентся претрайн на генерации стихов.')
+    parser.add_argument('--from_pretrain', type=str, default='')
 
     args, unknown1 = parser.parse_known_args()
 

@@ -49,9 +49,15 @@ class BaseModel:
         return response
 
 class ModelQwen(BaseModel):
-    def __init__(self, quantization=False):
-        super().__init__('Qwen/Qwen2.5-3B-Instruct', quantization)
+    def __init__(self, quantization=False, path=''):
+        if path == '':
+            super().__init__('Qwen/Qwen2.5-3B-Instruct', quantization)
+        else:
+            super().__init__(path, quantization)
 
 class ModelTLite(BaseModel):
-    def __init__(self, quantization=False):
-        super().__init__("t-tech/T-lite-it-1.0", quantization)
+    def __init__(self, quantization=False, path=''):
+        if path == '':
+            super().__init__("t-tech/T-lite-it-1.0", quantization)
+        else:
+            super().__init__(path, quantization)
