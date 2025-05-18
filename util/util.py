@@ -80,12 +80,16 @@ class ChatGenerationCallback(TrainerCallback):
                 tokenize=False,
                 add_generation_prompt=True
             )
-            model_inputs = self.tokenizer([text], return_tensors="pt").to(model.device)
+            model_dtype = next(model.parameters()).dtype
+            model_inputs = {
+                k: v.to(model.device).to(model_dtype) for k, v in self.tokenizer([text], return_tensors="pt").items()
+            }
 
-            generated_ids = model.generate(
-                **model_inputs,
-                max_new_tokens=256
-            )
+            with autocast(dtype=torch.bfloat16):
+                generated_ids = model.generate(
+                    **model_inputs,
+                    max_new_tokens=256
+                )
             generated_ids = [
                 output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
             ]
