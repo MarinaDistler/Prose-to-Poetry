@@ -28,7 +28,6 @@ from util.util import print_options
 
 def main(args):
     quantization = (args.checkpoint != '')
-    print(quantization)
     if args.model == 't-lite':
         model = ModelTLite(quantization=quantization, path=args.checkpoint, generate=args.generate)
     elif args.model == 'qwen':

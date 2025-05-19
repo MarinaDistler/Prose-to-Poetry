@@ -1,10 +1,11 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
+from peft import PeftModel
 
 from util.promts import get_train_prompt, get_prompt, system_instruction, system_instruction_generate
 
 class BaseModel:
-    def __init__(self, model_name, quantization=False, generate=False):
+    def __init__(self, model_name, path, quantization=False, generate=False):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.quantization = quantization
         self.generate = generate
@@ -25,6 +26,8 @@ class BaseModel:
                 model_name,
                 torch_dtype="auto",
             ).to('cuda')
+        if path != '':
+            self.model = PeftModel.from_pretrained(self.model, path)
 
     def use(self, text, scheme='ABAB', meter='ямб'):
         system_instruction_ = system_instruction
@@ -62,14 +65,8 @@ class BaseModel:
 
 class ModelQwen(BaseModel):
     def __init__(self, quantization=False, path='', generate=False):
-        if path == '':
-            super().__init__('Qwen/Qwen2.5-3B-Instruct', quantization, generate)
-        else:
-            super().__init__(path, quantization, generate)
+        super().__init__('Qwen/Qwen2.5-3B-Instruct', path, quantization, generate)
 
 class ModelTLite(BaseModel):
     def __init__(self, quantization=False, path='', generate=False):
-        if path == '':
-            super().__init__("t-tech/T-lite-it-1.0", quantization, generate)
-        else:
-            super().__init__(path, quantization, generate)
+        super().__init__("t-tech/T-lite-it-1.0", path, quantization, generate)
