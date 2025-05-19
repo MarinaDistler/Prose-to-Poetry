@@ -37,6 +37,8 @@ def main(args):
 
     for i, row in eval_data.iterrows():
         result.append(model.use(row['text'], row['rhyme_scheme'], row['meter']))
+        if i % 10 == 0:
+            print(i)
 
     df = pd.DataFrame({args.name: result}, index=eval_data.index)
     df.to_csv(args.output_dir + args.name)
