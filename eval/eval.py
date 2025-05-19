@@ -36,7 +36,7 @@ def main(args):
     eval_data = pd.read_csv(args.test_dataset)
     result = []
 
-    for _, i, row in tqdm(eval_data.iterrows()):
+    for _, (i, row) in tqdm(eval_data.iterrows()):
         result.append(model.use(row['text'], row['rhyme_scheme'], row['meter']))
 
     df = pd.DataFrame({args.name: result}, index=eval_data.index)
