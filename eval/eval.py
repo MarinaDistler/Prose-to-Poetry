@@ -18,6 +18,7 @@ from peft import (
     get_peft_model,
 )
 import pandas as pd
+from tqdm.auto import tqdm
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.models import ModelTLite, ModelQwen
@@ -35,17 +36,15 @@ def main(args):
     eval_data = pd.read_csv(args.test_dataset)
     result = []
 
-    for i, row in eval_data.iterrows():
+    for _, i, row in tqdm(eval_data.iterrows()):
         result.append(model.use(row['text'], row['rhyme_scheme'], row['meter']))
-        if i % 10 == 0:
-            print(i)
 
     df = pd.DataFrame({args.name: result}, index=eval_data.index)
     df.to_csv(args.output_dir + args.name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='eval model')
-    parser.add_argument('--name', type=str, default='t-lite')
+    parser.add_argument('--name', type=str, default='t-lite.csv')
     parser.add_argument('--test_dataset', type=str, default='dataset/prosa_test_text.csv')
     parser.add_argument('--checkpoint', type=str, default='')
     parser.add_argument('--output_dir', type=str, default='output/')
