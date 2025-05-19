@@ -32,7 +32,7 @@ def main(args):
     elif args.model == 'qwen':
         model = ModelQwen(quantization=quantization, path=args.checkpoint, generate=args.generate)
 
-    eval_data = pd.read_csv(args.test_dataset, index_col='Unnamed: 0')
+    eval_data = pd.read_csv(args.test_dataset)
     result = []
 
     for i, row in eval_data.iterrows():
