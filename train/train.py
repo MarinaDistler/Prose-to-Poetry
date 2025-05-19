@@ -146,7 +146,6 @@ if __name__ == "__main__":
     parser.add_argument('--train_dataset', type=str, default='dataset/trainset.csv')
     parser.add_argument('--test_dataset', type=str, default='dataset/testset.csv')
     parser.add_argument('--output_dir', type=str, default='output/')
-    parser.add_argument('--final_test_file', type=str, default='dataset/test_text.txt')
     parser.add_argument('--checkpoint', type=str, default='')
     parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
     parser.add_argument('--epochs', type=int, default=10)

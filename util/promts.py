@@ -49,7 +49,9 @@ short_meters = {
 }
 
 def get_prompt(text, scheme='ABAB', meter='ямб'):
-    return f''' Рифмовка: {scheme}\n Размер: {meters[meter]}\n Исходный текст: {text}'''
+    if text is None:
+        return f'''Напиши четверостишие с параметрами:\n Рифмовка: {scheme}\n Размер: {meters[meter]}\n'''
+    return f'''Преобразуй прозу в четверостишие с параметрами:\n Рифмовка: {scheme}\n Размер: {meters[meter]}\n Исходный текст: {text}'''
 
 def get_train_prompt(text, scheme='ABAB', meter='ямб'):
     if text is None:

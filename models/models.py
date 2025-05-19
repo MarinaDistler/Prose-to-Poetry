@@ -1,12 +1,13 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
 
-from util.promts import get_prompt
+from util.promts import get_train_prompt, get_prompt, system_instruction, system_instruction_generate
 
 class BaseModel:
-    def __init__(self, model_name, quantization=False):
+    def __init__(self, model_name, quantization=False, generate=False):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.quantization = quantization
+        self.generate = generate
         if quantization: 
             bnb_config = BitsAndBytesConfig(
                 load_in_4bit=True,
@@ -26,10 +27,21 @@ class BaseModel:
             ).to('cuda')
 
     def use(self, text, scheme='ABAB', meter='ямб'):
-        messages = [
-            {"role": "system", "content": system_instruction},
-            {"role": "user", "content": get_prompt(text, scheme, meter)}
-        ]
+        system_instruction_ = system_instruction
+        text_ = text
+        if self.generate:
+            system_instruction_ = system_instruction_generate
+            text_ = None
+        if self.quantization:
+            messages = [
+                {"role": "system", "content": system_instruction_},
+                {"role": "user", "content": get_train_prompt(text_, scheme, meter)}
+            ]
+        else:
+            messages = [
+                {"role": "system", "content": system_instruction_},
+                {"role": "user", "content": get_prompt(text_, scheme, meter)}
+            ]
         text = self.tokenizer.apply_chat_template(
             messages,
             tokenize=False,
@@ -49,15 +61,15 @@ class BaseModel:
         return response
 
 class ModelQwen(BaseModel):
-    def __init__(self, quantization=False, path=''):
+    def __init__(self, quantization=False, path='', generate=False):
         if path == '':
-            super().__init__('Qwen/Qwen2.5-3B-Instruct', quantization)
+            super().__init__('Qwen/Qwen2.5-3B-Instruct', quantization, generate)
         else:
-            super().__init__(path, quantization)
+            super().__init__(path, quantization, generate)
 
 class ModelTLite(BaseModel):
-    def __init__(self, quantization=False, path=''):
+    def __init__(self, quantization=False, path='', generate=False):
         if path == '':
-            super().__init__("t-tech/T-lite-it-1.0", quantization)
+            super().__init__("t-tech/T-lite-it-1.0", quantization, generate)
         else:
-            super().__init__(path, quantization)
+            super().__init__(path, quantization, generate)
