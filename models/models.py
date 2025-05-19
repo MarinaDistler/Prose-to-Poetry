@@ -30,6 +30,7 @@ class BaseModel:
             self.model = PeftModel.from_pretrained(self.model, path)
 
     def use(self, text, scheme='ABAB', meter='ямб'):
+        self.model.eval()
         system_instruction_ = system_instruction
         text_ = text
         if self.generate:
@@ -52,10 +53,11 @@ class BaseModel:
         )
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
-        generated_ids = self.model.generate(
-            **model_inputs,
-            max_new_tokens=512
-        )
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                **model_inputs,
+                max_new_tokens=512
+            )
         generated_ids = [
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
