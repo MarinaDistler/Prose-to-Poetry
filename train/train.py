@@ -37,7 +37,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         run_name = f"{args.name_run}-from-{checkpoint}"
     else:
         run_name = f"{args.name_run}-{datetime.now().strftime('%m-%d-%H-%M')}"
-    output_dir = args.output_dir + run_name + ('-pretrain' if args.pretrain else '')
+    output_dir = os.path.join([args.output_dir, run_name + ('-pretrain' if args.pretrain else '')])
     config = vars(args)
     project = 'Poetry-pretrain' if args.pretrain else 'Poetry'
     start_wandb(
@@ -110,14 +110,17 @@ def main(args):
         model = ModelQwen(quantization=True, path=args.from_pretrain)
 
     # LoRA config / адаптер 
-    peft_config = LoraConfig(
-        r=16,
-        lora_alpha=32,
-        lora_dropout=0.05,
-        bias="none",
-        task_type="CAUSAL_LM",
-        target_modules=['up_proj', 'down_proj', 'gate_proj', 'k_proj', 'q_proj', 'v_proj', 'o_proj']
-    )
+    if args.from_pretrain == '':
+        peft_config = LoraConfig(
+            r=16,
+            lora_alpha=32,
+            lora_dropout=0.05,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=['up_proj', 'down_proj', 'gate_proj', 'k_proj', 'q_proj', 'v_proj', 'o_proj']
+        )
+    else:
+        peft_config = None
 
     eval_data = pd.read_csv(args.test_dataset, index_col='Unnamed: 0')
     dataset = {

@@ -114,6 +114,6 @@ class ChatGenerationCallback(TrainerCallback):
 
         # Сохраняем модель при каждой валидации
         checkpoint_dir = f"{self.output_dir}/step-{state.global_step}"
-        model.save_pretrained(checkpoint_dir)
+        model.save_pretrained(checkpoint_dir, safe_serialization=True)
         self.tokenizer.save_pretrained(checkpoint_dir)
         print(f"Чекпоинт сохранён в {checkpoint_dir}")

@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
 from peft import PeftModel
+import os
 
 from util.promts import get_train_prompt, get_prompt, system_instruction, system_instruction_generate
 
@@ -18,16 +19,28 @@ class BaseModel:
             )
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_name,
-                torch_dtype="auto",
+                torch_dtype=torch.bfloat16,
                 quantization_config=bnb_config,
             ).to('cuda:0')
         else:
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_name,
-                torch_dtype="auto",
+                torch_dtype=torch.bfloat16,
             ).to('cuda')
         if path != '':
             self.model = PeftModel.from_pretrained(self.model, path)
+
+    def save_for_inference(self, path):
+        self.model = self.model.merge_and_unload().to(torch.bfloat16)
+        self.model.save_pretrained(os.path.join([path, 'merged']), safe_serialization=True)
+
+    def load_for_inference(self, path):
+        self.model = AutoModelForCausalLM.from_pretrained(
+            os.path.join([path, 'merged']), 
+            torch_dtype=torch.bfloat16, 
+            device_map="auto"
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(path)
 
     def use(self, text, scheme='ABAB', meter='ямб'):
         self.model.eval()
@@ -53,7 +66,7 @@ class BaseModel:
         )
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
-        with torch.no_grad():
+        with torch.inference_mode():
             generated_ids = self.model.generate(
                 **model_inputs,
                 max_new_tokens=512

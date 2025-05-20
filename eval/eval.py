@@ -27,12 +27,14 @@ from util.util import print_options
 
 
 def main(args):
-    quantization = (args.checkpoint != '')
+    quantization = False
     if args.model == 't-lite':
         model = ModelTLite(quantization=quantization, path=args.checkpoint, generate=args.generate)
     elif args.model == 'qwen':
         model = ModelQwen(quantization=quantization, path=args.checkpoint, generate=args.generate)
-
+    if args.checkpoint != '':
+        model.save_for_inference(args.checkpoint)
+    
     eval_data = pd.read_csv(args.test_dataset)
     result = []
 
@@ -40,11 +42,11 @@ def main(args):
         result.append(model.use(row['text'], row['rhyme_scheme'], row['meter']))
 
     df = pd.DataFrame({args.name: result}, index=eval_data.index)
-    df.to_csv(args.output_dir + args.name)
+    df.to_csv(args.output_dir + f'{args.name}.csv')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='eval model')
-    parser.add_argument('--name', type=str, default='t-lite.csv')
+    parser.add_argument('--name', type=str, default='t-lite')
     parser.add_argument('--test_dataset', type=str, default='dataset/prosa_test_text.csv')
     parser.add_argument('--checkpoint', type=str, default='')
     parser.add_argument('--output_dir', type=str, default='output/')
