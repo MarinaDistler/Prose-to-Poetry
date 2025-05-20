@@ -17,6 +17,7 @@ from peft import (
     prepare_model_for_kbit_training,
     get_peft_model,
 )
+from peft import get_peft_model_state_dict
 from trl import SFTTrainer, setup_chat_format, SFTConfig
 from datasets import Dataset
 import pandas as pd
@@ -108,6 +109,7 @@ def main(args):
         model = ModelTLite(quantization=True, path=args.from_pretrain)
     elif args.model == 'qwen':
         model = ModelQwen(quantization=True, path=args.from_pretrain)
+    model.model.train()
 
     # LoRA config / адаптер 
     if args.from_pretrain == '':

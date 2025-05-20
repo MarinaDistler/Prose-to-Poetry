@@ -21,14 +21,16 @@ class BaseModel:
                 model_name,
                 torch_dtype=torch.bfloat16,
                 quantization_config=bnb_config,
-            ).to('cuda:0')
+            )
         else:
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 torch_dtype=torch.bfloat16,
-            ).to('cuda')
+            )
         if path != '':
             self.model = PeftModel.from_pretrained(self.model, path)
+            self.model.enable_adapter_layers()
+        self.model = self.model.cuda()
 
     def save_for_inference(self, path):
         self.model = self.model.merge_and_unload().to(torch.bfloat16)
