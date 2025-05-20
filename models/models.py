@@ -32,11 +32,11 @@ class BaseModel:
 
     def save_for_inference(self, path):
         self.model = self.model.merge_and_unload().to(torch.bfloat16)
-        self.model.save_pretrained(os.path.join([path, 'merged']), safe_serialization=True)
+        self.model.save_pretrained(os.path.join(path, 'merged'), safe_serialization=True)
 
     def load_for_inference(self, path):
         self.model = AutoModelForCausalLM.from_pretrained(
-            os.path.join([path, 'merged']), 
+            os.path.join(path, 'merged'), 
             torch_dtype=torch.bfloat16, 
             device_map="auto"
         )

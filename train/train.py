@@ -37,7 +37,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         run_name = f"{args.name_run}-from-{checkpoint}"
     else:
         run_name = f"{args.name_run}-{datetime.now().strftime('%m-%d-%H-%M')}"
-    output_dir = os.path.join([args.output_dir, run_name + ('-pretrain' if args.pretrain else '')])
+    output_dir = os.path.join(args.output_dir, run_name + ('-pretrain' if args.pretrain else ''))
     config = vars(args)
     project = 'Poetry-pretrain' if args.pretrain else 'Poetry'
     start_wandb(
