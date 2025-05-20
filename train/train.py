@@ -28,6 +28,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.models import ModelTLite, ModelQwen
 from util.promts import format_chat_template 
 from util.util import print_options, seed_everything, start_wandb, ChatGenerationCallback
+from train.metrics import make_metric_fn
 
 
 def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
@@ -98,6 +99,8 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         data_collator=data_collator, # был импортирован
         args=training_arguments,
         callbacks=callbacks,
+        compute_metrics=make_metric_fn(datasets['test_rhyme_scheme'], tokenizer),
+        predict_with_generate=True,
     )
     trainer.train(resume_from_checkpoint=checkpoint)
     return trainer
@@ -140,6 +143,7 @@ def main(args):
     dataset = {
         'train': Dataset.from_pandas(dataset['train'][['text']]),
         'test': Dataset.from_pandas(dataset['test'][['text']]),
+        'test_rhyme_scheme': Dataset.from_pandas(dataset['test'][['rhyme_scheme']]),
     }
 
     trainer = train(model.model, model.tokenizer, dataset, peft_config, eval_data.iloc[:10], args)
