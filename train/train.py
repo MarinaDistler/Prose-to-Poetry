@@ -173,7 +173,7 @@ if __name__ == "__main__":
     parser.add_argument('--log_steps', type=int, default=100)
     parser.add_argument('--pretrain', action='store_true', help='Если установлен, то запусткаентся претрайн на генерации стихов.')
     parser.add_argument('--from_pretrain', type=str, default='')
-    parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'rhyme_markup_long', 'stanzas'])
+    parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'rhyme_markup_long', 'stanzas', 'rhyme_markup_long_count'])
 
     args, unknown1 = parser.parse_known_args()
 
