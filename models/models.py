@@ -29,7 +29,7 @@ class BaseModel:
             )
         if markup == 'stanzas':
             special_tokens = None
-        elif markup == 'rhyme_markup':
+        elif markup in ['rhyme_markup', 'rhyme_markup_long']:
             special_tokens = ['<rhymeA>', '</rhymeA>', '<rhymeB>', '</rhymeB>']
         if special_tokens is not None:
             self.tokenizer.add_tokens(special_tokens, special_tokens=True)
