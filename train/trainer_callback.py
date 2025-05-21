@@ -95,11 +95,11 @@ class ChatGenerationCallback(TrainerCallback):
                 output_ids[len(input_ids):] for input_ids, output_ids in zip(input_ids, generated_ids)
             ]
 
-            response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)
+            responses = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)
             
             if count < self.show_examples:
                 original_rows = [self.eval_dataset.loc[i] for i in index]
-                for row, response in zip(original_rows, response):
+                for row, response in zip(original_rows, responses):
                     to_table.append({
                         "User Prompt": row["promt"],
                         "Generated": response,
@@ -108,7 +108,7 @@ class ChatGenerationCallback(TrainerCallback):
 
             if self.compute_metrics:
                 self.compute_metrics(
-                    response, self.eval_dataset.loc[index, 'rhyme_scheme'], compute_result=False
+                    responses, self.eval_dataset.loc[index, 'rhyme_scheme'], compute_result=False
                 )
 
             count += len(index)
