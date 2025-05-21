@@ -62,7 +62,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         gradient_accumulation_steps=args.batch_size // fact_bach_size,
         optim="paged_adamw_32bit",
         num_train_epochs=args.epochs,
-        eval_strategy="no" if args.pretrain else 'steps',
+        eval_strategy='steps',
         eval_steps=args.save_steps // args.batch_size,
         logging_steps=args.log_steps // args.batch_size,
         warmup_steps=10,
@@ -75,7 +75,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         save_strategy='steps',
         save_steps=args.save_steps // args.batch_size,              # Сохранять каждые 500 шагов
         save_total_limit=10 if args.pretrain else 2,          # Макс. число чекпоинтов (старые удаляются)
-        load_best_model_at_end=False if args.pretrain else True, # Загружать лучшую модель в конце
+        load_best_model_at_end=True, # Загружать лучшую модель в конце
         metric_for_best_model="eval_loss",  # Критерий выбора лучшей модели
         max_seq_length=512,
         packing= False,
