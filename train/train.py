@@ -90,9 +90,6 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         tokenizer, clean_eval_data, output_dir, batch_size=fact_bach_size,
         compute_metrics=make_metric_fn(), generate=args.pretrain,
     )]
-    if args.pretrain:
-        datasets['test'] = None
-        callbacks = None
 
     trainer = SFTTrainer(
         model=model,
