@@ -28,7 +28,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.models import ModelTLite, ModelQwen
 from util.promts import format_chat_template 
 from util.util import print_options, seed_everything, start_wandb, ChatGenerationCallback
-from train.metrics import make_metric_fn
+from metrics import make_metric_fn
 
 
 def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
@@ -85,7 +85,10 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         mlm=False,
     )
 
-    callbacks = [ChatGenerationCallback(tokenizer, clean_eval_data, output_dir)]
+    callbacks = [ChatGenerationCallback(
+        tokenizer, clean_eval_data, output_dir, batch_size=fact_bach_size,
+        compute_metrics=make_metric_fn(), generate=args.pretrain,
+    )]
     if args.pretrain:
         datasets['test'] = None
         callbacks = None
@@ -99,8 +102,6 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         data_collator=data_collator, # был импортирован
         args=training_arguments,
         callbacks=callbacks,
-        compute_metrics=make_metric_fn(datasets['test_rhyme_scheme'], tokenizer),
-        predict_with_generate=True,
     )
     trainer.train(resume_from_checkpoint=checkpoint)
     return trainer
@@ -109,9 +110,9 @@ def main(args):
     seed_everything()
 
     if args.model == 't-lite':
-        model = ModelTLite(quantization=True, path=args.from_pretrain)
+        model = ModelTLite(quantization=True, path=args.from_pretrain, markup=args.markup)
     elif args.model == 'qwen':
-        model = ModelQwen(quantization=True, path=args.from_pretrain)
+        model = ModelQwen(quantization=True, path=args.from_pretrain, markup=args.markup)
     model.model.train()
 
     # LoRA config / адаптер 
@@ -133,7 +134,7 @@ def main(args):
         'test': eval_data,
     }
 
-    format_chat_template_ = lambda row: format_chat_template(row, model.tokenizer, args.pretrain)
+    format_chat_template_ = lambda row: format_chat_template(row, model.tokenizer, args.pretrain, markup=args.markup)
     dataset['train'] = dataset['train'].apply(
         format_chat_template_, axis=1
     )
@@ -143,10 +144,9 @@ def main(args):
     dataset = {
         'train': Dataset.from_pandas(dataset['train'][['text']]),
         'test': Dataset.from_pandas(dataset['test'][['text']]),
-        'test_rhyme_scheme': Dataset.from_pandas(dataset['test'][['rhyme_scheme']]),
     }
 
-    trainer = train(model.model, model.tokenizer, dataset, peft_config, eval_data.iloc[:10], args)
+    trainer = train(model.model, model.tokenizer, dataset, peft_config, eval_data, args)
 
 
 if __name__ == "__main__":
@@ -164,6 +164,7 @@ if __name__ == "__main__":
     parser.add_argument('--log_steps', type=int, default=100)
     parser.add_argument('--pretrain', action='store_true', help='Если установлен, то запусткаентся претрайн на генерации стихов.')
     parser.add_argument('--from_pretrain', type=str, default='')
+    parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'stanzas'])
 
     args, unknown1 = parser.parse_known_args()
 

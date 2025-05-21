@@ -87,18 +87,23 @@ def generate_model_answers(model_func, file_path='test_text.txt', from_id=0, to_
     return pd.concat(answers)
 
 
-def format_chat_template(row, tokenizer, generate=False):
+def format_chat_template(row, tokenizer, generate=False, markup='stanzas'):
     if generate:
+        promt = get_train_prompt(None, row['rhyme_scheme'], row['meter'])
         row_json = [
             {"role": "system", "content": system_instruction_generate},
-            {"role": "user", "content": get_train_prompt(None, row['rhyme_scheme'], row['meter'])},
-            {"role": "assistant", "content": '\n'.join(ast.literal_eval(row['stanzas'])) + '\n'}
+            {"role": "user", "content": promt},
         ]
     else:
+        promt = get_train_prompt(row['input'], row['rhyme_scheme'], row['meter'])
         row_json = [
             {"role": "system", "content": system_instruction},
-            {"role": "user", "content": get_train_prompt(row['input'], row['rhyme_scheme'], row['meter'])},
-            {"role": "assistant", "content": '\n'.join(ast.literal_eval(row['stanzas'])) + '\n'}
+            {"role": "user", "content": promt},
         ]
+    if markup is not None:
+        row_json.append(
+            {"role": "assistant", "content": '\n'.join(ast.literal_eval(row[markup])) + '\n'}
+        )
+    row['promt'] = promt
     row["text"] = tokenizer.apply_chat_template(row_json, tokenize=False)
     return row

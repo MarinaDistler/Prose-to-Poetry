@@ -6,7 +6,7 @@ import os
 from util.promts import get_train_prompt, get_prompt, system_instruction, system_instruction_generate
 
 class BaseModel:
-    def __init__(self, model_name, path, quantization=False, generate=False):
+    def __init__(self, model_name, path, quantization=False, generate=False, markup='stanzas'):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.quantization = quantization
         self.generate = generate
@@ -27,6 +27,13 @@ class BaseModel:
                 model_name,
                 torch_dtype=torch.bfloat16,
             )
+        if markup == 'stanzas':
+            special_tokens = None
+        elif markup == 'rhyme_markup':
+            special_tokens = ['<rhymeA>', '</rhymeA>', '<rhymeB>', '</rhymeB>']
+        if special_tokens is not None:
+            self.tokenizer.add_tokens(special_tokens, special_tokens=True)
+            self.model.resize_token_embeddings(len(tokenizer))
         if path != '':
             self.model = PeftModel.from_pretrained(self.model, path)
             self.model.enable_adapter_layers()
@@ -77,13 +84,17 @@ class BaseModel:
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
 
-        response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)[0]
         return response
 
 class ModelQwen(BaseModel):
-    def __init__(self, quantization=False, path='', generate=False):
-        super().__init__('Qwen/Qwen2.5-3B-Instruct', path, quantization, generate)
+    def __init__(self, quantization=False, path='', generate=False, markup='stanzas'):
+        super().__init__(
+            'Qwen/Qwen2.5-3B-Instruct', path, 
+            quantization, generate, markup=markup)
 
 class ModelTLite(BaseModel):
-    def __init__(self, quantization=False, path='', generate=False):
-        super().__init__("t-tech/T-lite-it-1.0", path, quantization, generate)
+    def __init__(self, quantization=False, path='', generate=False, markup='stanzas'):
+        super().__init__(
+            "t-tech/T-lite-it-1.0", path, quantization, 
+            generate, markup=markup)
