@@ -8,6 +8,8 @@ rt = RhymeTagger()
 rt.load_model(model='ru')  # Загрузка русской модели рифм
 
 def check_rhyme_scheme(lines, scheme="ABAB"):
+    if len(lines) > 4:
+        lines = lines[:4]
     rhymes = rt.tag(lines, output_format=1)
 
     scheme_map = []
@@ -22,8 +24,8 @@ def check_rhyme_scheme(lines, scheme="ABAB"):
         scheme_group = scheme_map[i % len(scheme_map)]
         correct_rhymes += len(set(rhyme_group) & set(scheme_group))
 
-    total_possible = sum(len(group) for group in scheme_map)
-    return correct_rhymes / total_possible if total_possible > 0 else 0.0
+    total_possible = len(lines)
+    return correct_rhymes / len(lines)
 
 def compute_metrics(texts, rhyme_schemes):
     total_penalty = 0
