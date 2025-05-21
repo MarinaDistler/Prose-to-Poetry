@@ -1,32 +1,49 @@
 import torch
 import wandb
-from transformers import TrainerCallback
+from transformers import TrainerCallback, DataCollatorWithPadding
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import ast
 from torch.amp import autocast
+from datasets import Dataset
 
-from util.promts import get_train_prompt, system_instruction
+from util.promts import get_train_prompt, system_instruction, format_chat_template
 
-def tokenize(example):
+def tokenize(example, tokenizer):
     tokens = tokenizer(
         example["text"],
         truncation=True,
         max_length=512,
         padding=False,  # Padding будет позже в коллаторе
     )
-    return {
-        "input_ids": tokens["input_ids"].squeeze(0),
-        "attention_mask": tokens["attention_mask"].squeeze(0),
-        "index": example["index"]  # сохраняем индекс строки
-    }
+    tokens['index'] = example['index']
+    return tokens
+
+
+class CustomDataCollator:
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+        self.collator = DataCollatorWithPadding(tokenizer, return_tensors="pt")
+
+    def __call__(self, features):
+        # Вытащим index перед паддингом
+        indices = [f["index"] for f in features]
+        for f in features:
+            f = f.copy()
+            f.pop("index", None)
+        
+        # Паддим всё остальное
+        batch = self.collator(features)
+        batch["index"] = indices  # вернём индексы отдельно
+        return batch
+
 
 
 class ChatGenerationCallback(TrainerCallback):
     def __init__(
                 self, tokenizer, eval_dataset, output_dir, batch_size,
                 show_examples=10, compute_metrics=None,
-                max_new_tokens=512, generate=False
+                max_new_tokens=256, generate=False
                 ):
         self.tokenizer = tokenizer
         self.eval_dataset = eval_dataset
@@ -34,22 +51,27 @@ class ChatGenerationCallback(TrainerCallback):
         self.output_dir = output_dir
         self.compute_metrics = compute_metrics
         self.batch_size = batch_size
+        self.generate = generate
         self.max_new_tokens = max_new_tokens
         self.device = None  # будет установлен позже
         self.dataloader = None  # создадим в on_train_begin
 
     def on_train_begin(self, args, state, control, model=None, **kwargs):
         self.device = model.device
-        format_chat_template_ = lambda row: format_chat_template(row, self.tokenizer, self.pretrain, markup=None)
+        format_chat_template_ = lambda row: format_chat_template(row, self.tokenizer, self.generate, markup=None)
         self.eval_dataset = self.eval_dataset.apply(
             format_chat_template_, axis=1
         )
-        dataset = Dataset.from_pandas(self.eval_dataset[['text']])
-        tokenized_dataset = dataset.map(tokenize)
+        self.eval_dataset['index'] = self.eval_dataset.index
+        dataset = Dataset.from_pandas(self.eval_dataset[['text', 'index']])
+        tokenize_ = lambda ex: tokenize(ex, self.tokenizer)
+        tokenized_dataset = dataset.map(tokenize_, remove_columns=["text"])
+        collator = CustomDataCollator(tokenizer=self.tokenizer)
         self.dataloader = DataLoader(
             tokenized_dataset,
             batch_size=self.batch_size,
             shuffle=False,
+            collate_fn=collator
         )
 
     def on_evaluate(self, args, state, control, model=None, **kwargs):
@@ -58,7 +80,7 @@ class ChatGenerationCallback(TrainerCallback):
 
         to_table = []
         count = 0
-        for batch in eval_dataloader:
+        for batch in tqdm(self.dataloader):
             input_ids = batch["input_ids"].to(model.device)
             attention_mask = batch["attention_mask"].to(model.device)
             index = batch["index"]  
@@ -70,14 +92,14 @@ class ChatGenerationCallback(TrainerCallback):
                     max_new_tokens=self.max_new_tokens
                 )
             generated_ids = [
-                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+                output_ids[len(input_ids):] for input_ids, output_ids in zip(input_ids, generated_ids)
             ]
 
             response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)[0]
             
             if count < self.show_examples:
                 original_rows = [self.eval_dataset.loc[i] for i in index]
-                for row, response in zip(original_rows, decoded_responses):
+                for row, response in zip(original_rows, response):
                     to_table.append({
                         "User Prompt": row["promt"],
                         "Generated": response,

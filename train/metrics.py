@@ -1,4 +1,8 @@
 from rhymetagger import RhymeTagger
+import nltk
+import torch
+
+nltk.download('punkt_tab')
 
 rt = RhymeTagger()
 rt.load_model(model='ru')  # Загрузка русской модели рифм
@@ -24,7 +28,7 @@ def check_rhyme_scheme(lines, scheme="ABAB"):
 def compute_metrics(texts, rhyme_schemes):
     total_penalty = 0
     perfect_count = 0
-    rhyme_scores = []
+    rhyme_score = 0
 
     for pred, rhyme_scheme in zip(texts, rhyme_schemes):
         lines = [line.strip() for line in pred.split("\n") if line.strip()]
@@ -37,17 +41,14 @@ def compute_metrics(texts, rhyme_schemes):
         if num_lines == 4:
             perfect_count += 1
 
-        rhyme_score = check_rhyme_scheme(lines, scheme=rhyme_scheme)
-        rhyme_scores.append(rhyme_score)
+        rhyme_score += check_rhyme_scheme(lines, scheme=rhyme_scheme)
 
-    total = len(decoded_preds)
-    avg_penalty = total_penalty / total if total > 0 else 0.0
-    avg_rhyme = np.mean(rhyme_scores) if rhyme_scores else 0.0
+    avg_penalty = total_penalty 
 
     return {
         "eval/avg_line_count_penalty": avg_penalty,       # чем меньше, тем лучше
-        "eval/perfect_4_line_ratio": perfect_count / total,
-        "eval/avg_rhyme_accuracy": avg_rhyme         # от 0 до 1, чем выше — тем лучше
+        "eval/perfect_4_line_ratio": perfect_count,
+        "eval/avg_rhyme_accuracy": rhyme_score         # от 0 до 1, чем выше — тем лучше
     }
 
 class ComputeAggMetrics:
@@ -81,5 +82,5 @@ class ComputeAggMetrics:
 
 
 
-def make_metric_fn(rhyme_schemes, tokenizer):
-    return ComputeAggMetrics(rhyme_schemes, tokenizer)
+def make_metric_fn():
+    return ComputeAggMetrics()

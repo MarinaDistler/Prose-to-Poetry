@@ -33,11 +33,11 @@ class BaseModel:
             special_tokens = ['<rhymeA>', '</rhymeA>', '<rhymeB>', '</rhymeB>']
         if special_tokens is not None:
             self.tokenizer.add_tokens(special_tokens, special_tokens=True)
-            self.model.resize_token_embeddings(len(tokenizer))
+            self.model.resize_token_embeddings(len(self.tokenizer))
         if path != '':
             self.model = PeftModel.from_pretrained(self.model, path)
             self.model.enable_adapter_layers()
-        self.model = self.model.cuda()
+        self.model.cuda()
 
     def save_for_inference(self, path):
         self.model = self.model.merge_and_unload().to(torch.bfloat16)

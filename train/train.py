@@ -27,8 +27,9 @@ from datetime import datetime
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.models import ModelTLite, ModelQwen
 from util.promts import format_chat_template 
-from util.util import print_options, seed_everything, start_wandb, ChatGenerationCallback
+from util.util import print_options, seed_everything, start_wandb
 from metrics import make_metric_fn
+from trainer_callback import ChatGenerationCallback
 
 
 def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
@@ -146,7 +147,7 @@ def main(args):
         'test': Dataset.from_pandas(dataset['test'][['text']]),
     }
 
-    trainer = train(model.model, model.tokenizer, dataset, peft_config, eval_data, args)
+    trainer = train(model.model, model.tokenizer, dataset, peft_config, eval_data.iloc[:20], args)
 
 
 if __name__ == "__main__":
