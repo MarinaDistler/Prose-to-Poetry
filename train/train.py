@@ -21,6 +21,7 @@ from peft import get_peft_model_state_dict
 from trl import SFTTrainer, setup_chat_format, SFTConfig
 from datasets import Dataset
 import pandas as pd
+from pathlib import Path
 from datetime import datetime
 
 
@@ -127,8 +128,18 @@ def main(args):
         peft_config = None
 
     eval_data = pd.read_csv(args.test_dataset, index_col='Unnamed: 0')
+    if os.path.isdir(args.train_dataset):
+        all_dfs = []
+        # Рекурсивно обходим все файлы в папке
+        for root, _, files in os.walk(args.train_dataset):
+            for file in files:
+                file_path = Path(root) / file
+                all_dfs.append(pd.read_csv(file_path, index_col='Unnamed: 0'))
+        train_data = pd.concat(all_dfs)
+    else:
+        train_data = pd.read_csv(args.train_dataset, index_col='Unnamed: 0'),
     dataset = {
-        'train': pd.read_csv(args.train_dataset, index_col='Unnamed: 0'),
+        'train': train_data,
         'test': eval_data,
     }
 
