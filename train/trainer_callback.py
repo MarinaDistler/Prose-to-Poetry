@@ -95,7 +95,7 @@ class ChatGenerationCallback(TrainerCallback):
                 output_ids[len(input_ids):] for input_ids, output_ids in zip(input_ids, generated_ids)
             ]
 
-            response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)[0]
+            response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)
             
             if count < self.show_examples:
                 original_rows = [self.eval_dataset.loc[i] for i in index]
