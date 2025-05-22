@@ -32,6 +32,24 @@ from util.util import print_options, seed_everything, start_wandb
 from metrics import make_metric_fn
 from trainer_callback import ChatGenerationCallback
 
+class TrainDataCollator:
+    def __init__(self, tokenizer, model):
+        self.tokenizer = tokenizer
+        self.pad = DataCollatorForSeq2Seq(
+            tokenizer=tokenizer,
+            model=model,
+            label_pad_token_id=-100,  # Маскируем паддинг
+            pad_to_multiple_of=8  # Выравниваем длину батча до кратности 8
+        )
+
+    def __call__(self, features):
+        # Скопируем input_ids в labels до паддинга
+        for feature in features:
+            feature["labels"] = feature["input_ids"].copy()
+        
+        # Теперь можно паддить
+        batch = self.pad(features)
+        return batch
 
 def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
     checkpoint = None if args.checkpoint == '' else args.checkpoint
@@ -80,12 +98,10 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         max_seq_length=512,
         packing= False,
     )
-    
-    data_collator = DataCollatorForSeq2Seq(
+
+    data_collator = TrainDataCollator(
         tokenizer=tokenizer,
         model=model,
-        label_pad_token_id=-100,  # Маскируем паддинг
-        pad_to_multiple_of=8  # Выравниваем длину батча до кратности 8
     )
 
     callbacks = [ChatGenerationCallback(
