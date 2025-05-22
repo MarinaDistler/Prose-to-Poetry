@@ -96,7 +96,7 @@ class ChatGenerationCallback(TrainerCallback):
             ]
 
             responses = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)
-            responses = [text.replace("<|im_start|>assistant\n", "").replace("<|im_end|>", "") for text in responses]
+            responses = [text.replace("<|im_start|>assistant\n", "").replace("<|im_end|>", "").replace("<|endoftext|>", "") for text in responses]
             
             if count < self.show_examples:
                 original_rows = [self.eval_dataset.loc[i] for i in index]
