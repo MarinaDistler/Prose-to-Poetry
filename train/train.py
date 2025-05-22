@@ -9,7 +9,7 @@ from transformers import (
     TrainingArguments,
     pipeline,
     logging,
-    DataCollatorForLanguageModeling
+    DataCollatorForSeq2Seq
 )
 from peft import (
     LoraConfig,
@@ -80,9 +80,12 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         max_seq_length=512,
         packing= False,
     )
-    data_collator = DataCollatorForLanguageModeling(
+    
+    data_collator = DataCollatorForSeq2Seq(
         tokenizer=tokenizer,
-        mlm=False,
+        model=model,
+        label_pad_token_id=-100,  # Маскируем паддинг
+        pad_to_multiple_of=8  # Выравниваем длину батча до кратности 8
     )
 
     callbacks = [ChatGenerationCallback(

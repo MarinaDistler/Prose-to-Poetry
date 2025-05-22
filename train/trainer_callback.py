@@ -28,9 +28,7 @@ class CustomDataCollator:
     def __call__(self, features):
         # Вытащим index перед паддингом
         indices = [f["index"] for f in features]
-        for f in features:
-            f = f.copy()
-            f.pop("index", None)
+        features = [{k: v for k, v in f.items() if k != "index"} for f in features]
         
         # Паддим всё остальное
         batch = self.collator(features)
