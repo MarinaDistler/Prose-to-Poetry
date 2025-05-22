@@ -8,6 +8,7 @@ from util.promts import get_train_prompt, get_prompt, system_instruction, system
 class BaseModel:
     def __init__(self, model_name, path, quantization=False, generate=False, markup='stanzas'):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.padding_side = "left"
         self.quantization = quantization
         self.generate = generate
         if quantization: 
