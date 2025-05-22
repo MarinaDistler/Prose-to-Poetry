@@ -50,8 +50,6 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
     )
     print_options(args, None)
 
-    tokenizer.pad_token = tokenizer.eos_token
-
     if args.model == 't-lite':
         fact_bach_size = 4
     else:
