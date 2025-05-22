@@ -67,7 +67,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
         eval_strategy='steps',
         eval_steps=args.save_steps // args.batch_size,
         logging_steps=args.log_steps // args.batch_size,
-        warmup_steps=10,
+        warmup_steps=args.warmup_steps,
         logging_strategy="steps",
         learning_rate=args.lr,
         fp16=False,
@@ -170,6 +170,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=3e-5)
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--save_steps', type=int, default=2000)
+    parser.add_argument('--warmup_steps', type=int, default=100)
     parser.add_argument('--log_steps', type=int, default=100)
     parser.add_argument('--pretrain', action='store_true', help='Если установлен, то запусткаентся претрайн на генерации стихов.')
     parser.add_argument('--from_pretrain', type=str, default='')
