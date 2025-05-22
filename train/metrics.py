@@ -25,7 +25,7 @@ def check_rhyme_scheme(lines, scheme="ABAB"):
         correct_rhymes += len(set(rhyme_group) & set(scheme_group))
 
     total_possible = len(lines)
-    return correct_rhymes / len(lines)
+    return correct_rhymes / total_possible if total_possible > 0 else 0.
 
 def compute_metrics(texts, rhyme_schemes):
     total_penalty = 0
