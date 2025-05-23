@@ -38,6 +38,7 @@ class BaseModel:
         if path != '':
             self.model = PeftModel.from_pretrained(self.model, path)
             self.model.enable_adapter_layers()
+            print('shape of embedding layer:', self.model.model.base_model.model.embed_tokens.weight.shape)
         self.model.cuda()
 
     def save_for_inference(self, path):
