@@ -2,6 +2,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
 from peft import PeftModel
 import os
+import re
 
 from util.promts import get_train_prompt, get_prompt, system_instruction, system_instruction_generate
 
@@ -86,6 +87,8 @@ class BaseModel:
         ]
 
         response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)[0]
+        response = response.replace("<|im_start|>assistant\n", "").replace("<|im_end|>", "").replace("<|endoftext|>", "")
+        response = re.sub(r"<rhyme[AB]>.*?</rhyme[AB]>", "", response)
         return response
 
 class ModelQwen(BaseModel):

@@ -12,4 +12,4 @@ python3 train/train.py --model='qwen' --save_steps=2000 --from_pretrain=output/q
 
 python3 train/train.py --model='t-lite' --save_steps=2000 --from_pretrain=output/t-lite-05-18-09-39-pretrain/checkpoint-5369 --lr=1e-6 --epochs=10 --log_steps=200
 
-python3 eval/eval.py --name=qwen model=qwen --checkpoint=output/qwen-05-23-22-32/checkpoint-624 --markup=rhyme_markup
+python3 eval/eval.py --name=qwen --model=qwen --checkpoint=output/qwen-05-23-22-32/checkpoint-624 --markup=rhyme_markup
