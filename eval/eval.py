@@ -29,11 +29,12 @@ from util.util import print_options
 def main(args):
     quantization = False
     if args.model == 't-lite':
-        model = ModelTLite(quantization=quantization, path=args.checkpoint, generate=args.generate)
+        model = ModelTLite(quantization=quantization, path=args.checkpoint, generate=args.generate, markup=args.markup)
     elif args.model == 'qwen':
-        model = ModelQwen(quantization=quantization, path=args.checkpoint, generate=args.generate)
+        model = ModelQwen(quantization=quantization, path=args.checkpoint, generate=args.generate, markup=args.markup)
     if args.checkpoint != '':
         model.save_for_inference(args.checkpoint)
+        model.load_for_inference(args.checkpoint)
     
     eval_data = pd.read_csv(args.test_dataset)
     result = []
@@ -52,6 +53,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_dir', type=str, default='output/')
     parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
     parser.add_argument('--generate', action='store_true', help='Если установлен, то запусткаентся генерация стихов.')
+    parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'rhyme_markup_long', 'stanzas'])
 
     args, unknown1 = parser.parse_known_args()
 
