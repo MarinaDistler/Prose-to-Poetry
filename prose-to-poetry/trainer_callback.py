@@ -8,6 +8,7 @@ from torch.amp import autocast
 from datasets import Dataset
 
 from promts import get_train_prompt, system_instruction, format_chat_template
+from util import clean_responces
 
 def tokenize(example, tokenizer):
     tokens = tokenizer(
@@ -99,6 +100,7 @@ class ChatGenerationCallback(TrainerCallback):
             if count < self.show_examples:
                 original_rows = [self.eval_dataset.loc[i] for i in index]
                 for row, response in zip(original_rows, responses):
+                    
                     to_table.append({
                         "User Prompt": row["promt"],
                         "Generated": response,
@@ -107,7 +109,7 @@ class ChatGenerationCallback(TrainerCallback):
 
             if self.compute_metrics:
                 self.compute_metrics(
-                    responses, self.eval_dataset.loc[index, 'rhyme_scheme'], self.eval_dataset.loc[index, 'meter'], compute_result=False
+                    clean_responces(responces), self.eval_dataset.loc[index, 'rhyme_scheme'], self.eval_dataset.loc[index, 'meter'], compute_result=False
                 )
 
             count += len(index)

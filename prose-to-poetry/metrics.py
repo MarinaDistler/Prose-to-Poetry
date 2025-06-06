@@ -41,12 +41,16 @@ def check_rhyme_scheme(lines, scheme="ABAB"):
 
 def get_meter_score(lines, meter):
     rpst.meters = [meter_names_to_russian[meter]]
-    scansion = rpst.align(lines)
-    meter = meter_names_to_russian[meter][0]
-    if scansion.meter != meter:
-        print(f"external code returned meter {scansion.meter} instead of {meter}")
-        return 0
-    return scansion.score
+    try: 
+        scansion = rpst.align(lines)
+        meter = meter_names_to_russian[meter][0]
+        if scansion.meter != meter:
+            print(f"external code returned meter {scansion.meter} instead of {meter}")
+            return 0.
+        return scansion.score
+    except Exception as e:
+        print(f"error in meter aligment: {e}")
+        return 0.
 
 
 def compute_metrics(texts, rhyme_schemes, meters):

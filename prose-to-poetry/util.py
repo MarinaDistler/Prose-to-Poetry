@@ -5,6 +5,7 @@ import typing as tp
 import os
 import wandb
 import shutil
+import re
 from transformers import TrainerCallback
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -12,6 +13,12 @@ import ast
 from torch.amp import autocast
 
 from promts import get_train_prompt, system_instruction
+
+def clean_responces(responces):
+    for i in range(len(responces)):
+        response[i] = re.sub(r"<rhyme[AB]>.*?</rhyme[AB]>", "", response[i])
+        response[i] = re.sub(r'<\|(?:[sS]\d+|count\d+)\|>', '', response[i])
+    return responces
 
 def print_options(opt, parser):
     message = ''

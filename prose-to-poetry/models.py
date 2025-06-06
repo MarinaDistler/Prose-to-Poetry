@@ -92,7 +92,7 @@ class BaseModel:
 
         response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)[0]
         response = response.replace("<|im_start|>assistant\n", "").replace("<|im_end|>", "").replace("<|endoftext|>", "")
-        response = re.sub(r"<rhyme[AB]>.*?</rhyme[AB]>", "", response)
+        response = clean_responces([responce])[0]
         return response
 
 class ModelQwen(BaseModel):
