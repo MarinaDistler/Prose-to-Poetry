@@ -5,7 +5,7 @@ import os
 import re
 
 from promts import get_train_prompt, get_prompt, system_instruction, system_instruction_generate
-from utils import clean_responses
+from util import clean_responses
 
 class BaseModel:
     def __init__(self, model_name, path, quantization=False, generate=False, markup='stanzas'):
