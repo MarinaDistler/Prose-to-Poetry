@@ -5,6 +5,7 @@ import os
 import re
 
 from promts import get_train_prompt, get_prompt, system_instruction, system_instruction_generate
+from utils import clean_responses
 
 class BaseModel:
     def __init__(self, model_name, path, quantization=False, generate=False, markup='stanzas'):
@@ -92,7 +93,7 @@ class BaseModel:
 
         response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)[0]
         response = response.replace("<|im_start|>assistant\n", "").replace("<|im_end|>", "").replace("<|endoftext|>", "")
-        response = clean_responces([responce])[0]
+        response = clean_responses([response])[0]
         return response
 
 class ModelQwen(BaseModel):

@@ -8,7 +8,7 @@ from torch.amp import autocast
 from datasets import Dataset
 
 from promts import get_train_prompt, system_instruction, format_chat_template
-from util import clean_responces
+from util import clean_responses
 
 def tokenize(example, tokenizer):
     tokens = tokenizer(
@@ -109,7 +109,7 @@ class ChatGenerationCallback(TrainerCallback):
 
             if self.compute_metrics:
                 self.compute_metrics(
-                    clean_responces(responces), self.eval_dataset.loc[index, 'rhyme_scheme'], self.eval_dataset.loc[index, 'meter'], compute_result=False
+                    clean_responses(responses), self.eval_dataset.loc[index, 'rhyme_scheme'], self.eval_dataset.loc[index, 'meter'], compute_result=False
                 )
 
             count += len(index)
