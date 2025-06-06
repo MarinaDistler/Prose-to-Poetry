@@ -44,7 +44,8 @@ def get_meter_score(lines, meter):
     scansion = rpst.align(lines)
     meter = meter_names_to_russian[meter][0]
     if scansion.meter != meter:
-        raise ValueError(f"external code returned meter {scansion.meter} instead of {meter}")
+        print(f"external code returned meter {scansion.meter} instead of {meter}")
+        return 0
     return scansion.score
 
 

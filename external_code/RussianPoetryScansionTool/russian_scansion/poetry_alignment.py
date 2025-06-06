@@ -3155,10 +3155,10 @@ class PoetryStressAligner(object):
             # Заранее сгенерируем для каждого слова варианты спеллчека и ударения...
             stressed_words_groups = [StressVariantsSlot.build(poetry_words=pline.pwords, aligner=self, allow_stress_shift=allow_stress_shift, allow_unstress12=True) for pline in plines]
 
-                check_meters = self.meters
-                #if n_sylla == (9, 8, 9, 2):
-                #    # Порошки - только ямб
-                #    check_meters = [('ямб', (0, 1))]
+            check_meters = self.meters
+            #if n_sylla == (9, 8, 9, 2):
+            #    # Порошки - только ямб
+            #    check_meters = [('ямб', (0, 1))]
 
             # Для каждой строки перебираем варианты разметки и оставляем по ~2 варианта в каждом метре.
             for metre_name, metre_signature in check_meters:
