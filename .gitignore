@@ -3,3 +3,4 @@ output
 wandb
 .venv
 */__pycache__/*
+models/*
