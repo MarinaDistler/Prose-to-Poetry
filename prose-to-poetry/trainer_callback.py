@@ -109,13 +109,13 @@ class ChatGenerationCallback(TrainerCallback):
 
             if self.compute_metrics:
                 self.compute_metrics(
-                    clean_responses(responses), self.eval_dataset.loc[index, 'rhyme_scheme'], self.eval_dataset.loc[index, 'meter'], compute_result=False
+                    clean_responses(responses), self.eval_dataset.loc[index, 'meter'], compute_result=False
                 )
 
             count += len(index)
         
         if self.compute_metrics:
-            metrics = self.compute_metrics(None, None, None, compute_result=True)
+            metrics = self.compute_metrics(None, None, compute_result=True)
             metrics['eval/step'] = state.global_step
             wandb.log(metrics)
 
