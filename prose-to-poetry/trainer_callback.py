@@ -109,7 +109,7 @@ class ChatGenerationCallback(TrainerCallback):
 
             if self.compute_metrics:
                 self.compute_metrics(
-                    clean_responses(responses), self.eval_dataset.loc[index, 'meter'], compute_result=False
+                    clean_responses(responses), self.eval_dataset.loc[index, 'rhyme_scheme'], compute_result=False
                 )
 
             count += len(index)

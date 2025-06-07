@@ -6,6 +6,7 @@ import multiprocessing
 import sys
 import os
 import time
+import numpy as np
 
 nltk.download('punkt_tab')
 
@@ -182,15 +183,15 @@ def get_meter_score_isolated(
         print(f"Main process: Дочерний процесс PID {process.pid} завис или не завершился вовремя ({timeout_seconds}с), принудительно завершаю.")
         process.terminate() # Принудительно завершаем
         process.join() # Ждем окончательного завершения
-        return None
+        return np.nan
     elif not result_queue.empty():
         worker_output = result_queue.get()
         if worker_output["status"] == "success":
             return worker_output["score"]
         else:
             print(f"Main process: Дочерний процесс вернул ошибку: {worker_output['error_type']}: {worker_output['message']}", file=sys.stderr)
-            return None
+            return np.nan
     else:
         # Это случай, когда процесс был KILLED, но не успел ничего вернуть.
         print(f"Main process: Дочерний процесс PID {process.pid} завершился, но не поместил ничего в очередь. Вероятно, был KILLED из-за нехватки памяти или другой системной проблемы.")
-        return None
+        return np.nan
