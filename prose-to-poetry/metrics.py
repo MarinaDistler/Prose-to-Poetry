@@ -88,8 +88,8 @@ class ComputeAggMetrics:
     def __init__(self):
         self.metrics = {}
         self.count = 0
-        self.zero_metrics()
         self.rpst = None
+        self.zero_metrics()
     
     def zero_metrics(self):
         self.metrics = {
