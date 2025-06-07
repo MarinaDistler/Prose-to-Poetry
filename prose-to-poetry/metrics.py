@@ -8,12 +8,6 @@ nltk.download('punkt_tab')
 rt = RhymeTagger()
 rt.load_model(model='ru')  # Загрузка русской модели рифм
 
-def create_rpst():
-    rpst = russian_scansion.create_rpst_instance('./models/RussianPoetryScansionTools/models')
-    rpst.max_words_per_line = 100
-    rpst.enable_dolnik = False
-    return rpst
-
 meter_names_to_russian = {
     "iambos": ('ямб', (0, 1)),
     "choreios": ('хорей', (1, 0)),
@@ -41,25 +35,11 @@ def check_rhyme_scheme(lines, scheme="ABAB"):
     return correct_rhymes / total_possible if total_possible > 0 else 0.
 
 
-def get_meter_score(lines, meter, rpst):
-    rpst.meters = [meter_names_to_russian[meter]]
-    try: 
-        scansion = rpst.align(lines)
-        meter = meter_names_to_russian[meter][0]
-        if scansion.meter != meter:
-            print(f"external code returned meter {scansion.meter} instead of {meter}")
-            return 0.
-        return scansion.score
-    except Exception as e:
-        print(f"error in meter aligment: {e}")
-        return 0.
 
-
-def compute_metrics(texts, rhyme_schemes, meters, rpst):
+def compute_metrics(texts, rhyme_schemes):
     total_penalty = 0
     perfect_count = 0
     rhyme_score = 0
-    meter_score = 0
 
     for pred, rhyme_scheme, meter in zip(texts, rhyme_schemes, meters):
         lines = [line.strip() for line in pred.split("\n") if line.strip()]
@@ -73,7 +53,6 @@ def compute_metrics(texts, rhyme_schemes, meters, rpst):
             perfect_count += 1
 
         rhyme_score += check_rhyme_scheme(lines[:4], scheme=rhyme_scheme)
-        meter_score += get_meter_score(lines[:4], meter, rpst)
 
     avg_penalty = total_penalty 
 
@@ -81,14 +60,12 @@ def compute_metrics(texts, rhyme_schemes, meters, rpst):
         "eval/avg_line_count_penalty": avg_penalty,       # чем меньше, тем лучше
         "eval/perfect_4_line_ratio": perfect_count,
         "eval/avg_rhyme_accuracy": rhyme_score,         # от 0 до 1, чем выше — тем лучше
-        "eval/avg_meter_accuracy": meter_score         # от 0 до 1, чем выше — тем лучше
     }
 
 class ComputeAggMetrics:
     def __init__(self):
         self.metrics = {}
         self.count = 0
-        self.rpst = None
         self.zero_metrics()
     
     def zero_metrics(self):
@@ -96,10 +73,8 @@ class ComputeAggMetrics:
             "eval/avg_line_count_penalty": 0.,       # чем меньше, тем лучше
             "eval/perfect_4_line_ratio": 0.,
             "eval/avg_rhyme_accuracy": 0.,
-            "eval/avg_meter_accuracy": 0.,
         }
         self.count = 0
-        self.rpst = create_rpst() # без этого происходит утечка памяти
     
     def __call__(self, texts, schemes, meters, compute_result=False):
         if compute_result:
@@ -120,3 +95,23 @@ class ComputeAggMetrics:
 
 def make_metric_fn():
     return ComputeAggMetrics()
+
+
+def create_rpst():
+    rpst = russian_scansion.create_rpst_instance('./models/RussianPoetryScansionTools/models')
+    rpst.max_words_per_line = 100
+    rpst.enable_dolnik = False
+    return rpst
+
+def get_meter_score(lines, meter, rpst):
+    rpst.meters = [meter_names_to_russian[meter]]
+    try: 
+        scansion = rpst.align(lines)
+        meter = meter_names_to_russian[meter][0]
+        if scansion.meter != meter:
+            print(f"external code returned meter {scansion.meter} instead of {meter}")
+            return 0.
+        return scansion.score
+    except Exception as e:
+        print(f"error in meter aligment: {e}")
+        return 0.
