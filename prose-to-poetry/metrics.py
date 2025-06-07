@@ -2,6 +2,10 @@ from rhymetagger import RhymeTagger
 import nltk
 import torch
 import russian_scansion
+import multiprocessing
+import sys
+import os
+import time
 
 nltk.download('punkt_tab')
 
@@ -84,7 +88,7 @@ class ComputeAggMetrics:
             self.zero_metrics()
             return result
         batch_metrics = compute_metrics(
-            texts, schemes, meters, self.rpst
+            texts, schemes, meters
         )
         for key, value in batch_metrics.items():
             self.metrics[key] += value
@@ -97,21 +101,3 @@ def make_metric_fn():
     return ComputeAggMetrics()
 
 
-def create_rpst():
-    rpst = russian_scansion.create_rpst_instance('./models/RussianPoetryScansionTools/models')
-    rpst.max_words_per_line = 100
-    rpst.enable_dolnik = False
-    return rpst
-
-def get_meter_score(lines, meter, rpst):
-    rpst.meters = [meter_names_to_russian[meter]]
-    try: 
-        scansion = rpst.align(lines)
-        meter = meter_names_to_russian[meter][0]
-        if scansion.meter != meter:
-            print(f"external code returned meter {scansion.meter} instead of {meter}")
-            return 0.
-        return scansion.score
-    except Exception as e:
-        print(f"error in meter aligment: {e}")
-        return 0.
