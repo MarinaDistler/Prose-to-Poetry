@@ -45,7 +45,7 @@ def compute_metrics(texts, rhyme_schemes):
     perfect_count = 0
     rhyme_score = 0
 
-    for pred, rhyme_scheme, meter in zip(texts, rhyme_schemes, meters):
+    for pred, rhyme_scheme in zip(texts, rhyme_schemes):
         lines = [line.strip() for line in pred.split("\n") if line.strip()]
         num_lines = len(lines)
 
