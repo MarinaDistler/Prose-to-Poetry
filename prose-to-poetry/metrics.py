@@ -8,7 +8,7 @@ nltk.download('punkt_tab')
 rt = RhymeTagger()
 rt.load_model(model='ru')  # Загрузка русской модели рифм
 
-def create_rpst()
+def create_rpst():
     rpst = russian_scansion.create_rpst_instance('./models/RussianPoetryScansionTools/models')
     rpst.max_words_per_line = 100
     rpst.enable_dolnik = False
