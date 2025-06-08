@@ -36,8 +36,8 @@ class BaseModel:
         if 'stress' in markup:
             special_tokens += [f'<|S{i}|>' for i in range(1, 11)]
             special_tokens += [f'<|s{i}|>' for i in range(1, 11)]
-        if markup == 'stress_markup_count':
-            special_tokens += [f'<|count{i}|>' for i in range(1, 11)]
+            if 'count' in markup:
+                special_tokens += [f'<|count{i}|>' for i in range(1, 11)]
         if len(special_tokens) > 0:
             self.tokenizer.add_tokens(special_tokens, special_tokens=True)
             self.model.resize_token_embeddings(len(self.tokenizer))
