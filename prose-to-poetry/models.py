@@ -40,7 +40,7 @@ class BaseModel:
         if len(special_tokens) > 0:
             self.tokenizer.add_tokens(special_tokens, special_tokens=True)
             self.model.resize_token_embeddings(len(self.tokenizer))
-            print('special tokens': special_tokens)
+            print('special tokens:', special_tokens)
         print('Added special tokens:', self.tokenizer.additional_special_tokens)
         if path != '':
             self.model = PeftModel.from_pretrained(self.model, path)
