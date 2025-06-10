@@ -58,19 +58,19 @@ def eval_poetry(inputs, outputs):
 def main(args):
     inputs = pd.read_csv(args.test_dataset)
     if not os.path.isdir(args.input_dir):
-        print(f"Ошибка: Папка '{folder_path}' не существует.")
+        print(f"Ошибка: Папка '{args.input_dir}' не существует.")
         return
     os.makedirs(args.output_dir, exist_ok=True)
 
     outputs = {}
     for filename in os.listdir(args.input_dir):
         if filename.endswith(".csv"):
-            file_path = os.path.join(folder_path, filename)
+            file_path = os.path.join(args.input_dir, filename)
             name = filename[:-4]
             outputs[name] = pd.read_csv(file_path)[name].values
     res = eval_poetry(inputs, outputs) 
     print(res)
-    res.to_csv(args.output_dir + f'{'_'.join(outputs.keys())}.csv')
+    res.to_csv(args.output_dir + f"{'_'.join(outputs.keys())}.csv")
 
 
 if __name__ == "__main__":
