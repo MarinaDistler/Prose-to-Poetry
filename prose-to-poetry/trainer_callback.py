@@ -73,6 +73,11 @@ class ChatGenerationCallback(TrainerCallback):
             collate_fn=collator
         )
 
+        # check tokenizer
+        ids = tokenizer.encode(dataset.iloc[0]['text'])
+        decoded = [tokenizer.decode([id]) for id in ids]
+        print("Tokenized:", decoded)
+
     def on_evaluate(self, args, state, control, model=None, **kwargs):
         if not model:
             return

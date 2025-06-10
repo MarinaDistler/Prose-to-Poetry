@@ -34,9 +34,9 @@ class BaseModel:
         if 'rhyme' in markup:
             special_tokens += ['<rhymeA>', '</rhymeA>', '<rhymeB>', '</rhymeB>']
         if 'stress' in markup:
-            special_tokens += [f'<|S{i}|>' for i in range(1, 11)]
-            special_tokens += [f'<|s{i}|>' for i in range(1, 11)]
-            special_tokens += [f'<|count{i}|>' for i in range(1, 11)]
+            special_tokens += [f'<S{i}>' for i in range(1, 11)]
+            special_tokens += [f'<s{i}>' for i in range(1, 11)]
+            special_tokens += [f'<count{i}>' for i in range(1, 11)]
         if len(special_tokens) > 0:
             self.tokenizer.add_special_tokens({
                 'additional_special_tokens': self.tokenizer.additional_special_tokens + special_tokens
