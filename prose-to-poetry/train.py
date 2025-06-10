@@ -111,6 +111,7 @@ def train(model, tokenizer, datasets, peft_config, clean_eval_data, args):
 
     trainer = SFTTrainer(
         model=model,
+        processing_class=tokenizer,
         train_dataset=datasets["train"],
         eval_dataset=datasets["test"],
         peft_config=peft_config, # сам адаптер, который создали ранее
