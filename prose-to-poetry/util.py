@@ -17,7 +17,7 @@ from promts import get_train_prompt, system_instruction
 def clean_responses(responses):
     for i in range(len(responses)):
         responses[i] = re.sub(r"<rhyme[AB]>.*?</rhyme[AB]>", "", responses[i])
-        responses[i] = re.sub(r'<\|(?:[sS]\d+|count\d+)\|>', '', responses[i])
+        responses[i] = re.sub(r'<\(?:[sS]\d+|count\d+)\>', '', responses[i])
     return responses
 
 def print_options(opt, parser):
