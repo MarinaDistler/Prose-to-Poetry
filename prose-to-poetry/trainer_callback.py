@@ -74,7 +74,7 @@ class ChatGenerationCallback(TrainerCallback):
         )
 
         # check tokenizer
-        ids = self.tokenizer.encode(dataset.iloc[0]['text'])
+        ids = self.tokenizer.encode(self.eval_dataset.iloc[0]['text'])
         decoded = [self.tokenizer.decode([id]) for id in ids]
         print("Tokenized:", decoded)
 
