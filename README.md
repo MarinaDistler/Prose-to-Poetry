@@ -1,6 +1,8 @@
 ## Преобразование прозы в стихи
 
-pip install transformers==4.38.2 accelerate bitsandbytes peft==0.9.0 wandb numpy pandas pytorch datasets trl
+pip install -r requirements.txt
+
+apt-get install espeak -y
 
 tmux attach -t distler
 
