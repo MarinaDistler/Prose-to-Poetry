@@ -38,7 +38,9 @@ class BaseModel:
             special_tokens += [f'<|s{i}|>' for i in range(1, 11)]
             special_tokens += [f'<|count{i}|>' for i in range(1, 11)]
         if len(special_tokens) > 0:
-            self.tokenizer.add_tokens(special_tokens, special_tokens=True)
+            self.tokenizer.add_special_tokens({
+                'additional_special_tokens': self.tokenizer.additional_special_tokens + special_tokens
+            })
             self.model.resize_token_embeddings(len(self.tokenizer))
             print('special tokens:', special_tokens)
         print('Added special tokens:', self.tokenizer.additional_special_tokens)
