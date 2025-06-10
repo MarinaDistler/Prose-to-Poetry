@@ -74,7 +74,7 @@ class ChatGenerationCallback(TrainerCallback):
         )
 
         # check tokenizer
-        ids = self.tokenizer.encode('\n'.join(self.eval_dataset.iloc[0]['rhyme_stress_markup']))
+        ids = self.tokenizer.encode('\n'.join(ast.literal_eval(self.eval_dataset.iloc[0]['rhyme_stress_markup'])))
         decoded = [self.tokenizer.decode([id]) for id in ids]
         print("Tokenized:", decoded)
 
