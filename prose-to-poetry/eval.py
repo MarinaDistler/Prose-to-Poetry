@@ -53,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_dir', type=str, default='output/')
     parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
     parser.add_argument('--generate', action='store_true', help='Если установлен, то запусткаентся генерация стихов.')
-    parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'stress_markup', 'stanzas', 'stress_markup_count', 'rhyme_stress_markup_count'])
+    parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'stress_markup', 'stanzas','rhyme_stress_markup'])
 
     args, unknown1 = parser.parse_known_args()
 
