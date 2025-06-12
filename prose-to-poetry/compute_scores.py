@@ -4,6 +4,7 @@ import argparse
 import pandas as pd
 from tqdm.auto import tqdm
 from evaluate import load
+import numpy as np
 
 bertscore = load("bertscore")
 
