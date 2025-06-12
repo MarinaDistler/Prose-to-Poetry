@@ -75,7 +75,6 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='eval model')
-    parser.add_argument('--name', type=str, default='t-lite')
     parser.add_argument('--test_dataset', type=str, default='dataset/prosa_test_text.csv')
     parser.add_argument('--input_dir', type=str, default='output/models_output/')
     parser.add_argument('--output_dir', type=str, default='output/')

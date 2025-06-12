@@ -121,77 +121,13 @@ def get_meter_score(lines, meter, rpst):
         print(f"error in meter aligment: {e}")
         return 0.
 
+rpst = None
 
-# --- 1. Функция, которая будет выполняться в отдельном процессе ---
-def _worker_get_meter_score(
-    lines,
-    meter_name_key,
-    result_queue          # Очередь для передачи результата
-):
-    """
-    Рабочая функция для запуска в отдельном процессе.
-    Инициализирует rpst и выполняет расчеты для одной порции данных.
-    """
-    try:
-        rpst_instance = create_rpst()            
-        target_meter_data = meter_names_to_russian[meter_name_key]
-        target_meter_russian_name = target_meter_data[0]
-        
-        rpst_instance.meters = [target_meter_data] # Установка целевого метра
-
-        scansion = rpst_instance.align(lines)
-
-        score = 0.0
-        if scansion.meter != target_meter_russian_name:
-            print(f"Worker PID {os.getpid()}: Внешний код вернул метр '{scansion.meter}' вместо '{target_meter_russian_name}'")
-            score = 0.0
-        else:
-            score = scansion.score
-
-        result_queue.put({"status": "success", "score": score})
-
-    except Exception as e:
-        print(f"Worker PID {os.getpid()}: Ошибка в расчете метра: {e}", file=sys.stderr)
-        result_queue.put({"status": "error", "message": str(e), "error_type": type(e).__name__})
-
-
-# --- 2. Функция-обертка для запуска в основном процессе ---
 def get_meter_score_isolated(
     lines,
-    meter,
-    timeout_seconds=300 # Таймаут по умолчанию 5 минут
+    meter
 ):
-    """
-    Запускает расчет оценки метра в отдельном процессе для изоляции памяти.
-    """
-    result_queue = multiprocessing.Queue()
-
-    process = multiprocessing.Process(
-        target=_worker_get_meter_score,
-        args=(
-            lines,
-            meter,
-            result_queue
-        )
-    )
-
-    process.start()
-
-    process.join(timeout=timeout_seconds)
-
-    if process.is_alive():
-        print(f"Main process: Дочерний процесс PID {process.pid} завис или не завершился вовремя ({timeout_seconds}с), принудительно завершаю.")
-        process.terminate() # Принудительно завершаем
-        process.join() # Ждем окончательного завершения
-        return np.nan
-    elif not result_queue.empty():
-        worker_output = result_queue.get()
-        if worker_output["status"] == "success":
-            return worker_output["score"]
-        else:
-            print(f"Main process: Дочерний процесс вернул ошибку: {worker_output['error_type']}: {worker_output['message']}", file=sys.stderr)
-            return np.nan
-    else:
-        # Это случай, когда процесс был KILLED, но не успел ничего вернуть.
-        print(f"Main process: Дочерний процесс PID {process.pid} завершился, но не поместил ничего в очередь. Вероятно, был KILLED из-за нехватки памяти или другой системной проблемы.")
-        return np.nan
+    global rpst
+    if rpst is None:
+        rpst = create_rpst()   
+    return get_meter_score(lines, meter, rpst)

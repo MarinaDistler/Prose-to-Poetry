@@ -10,7 +10,7 @@ python3 prose-to-poetry/train.py --pretrain --model='qwen' --save_steps=5000 --t
 
 python3 prose-to-poetry/train.py --model='qwen' --save_steps=2000 --from_pretrain=output/qwen-05-18-09-32-pretrain/checkpoint-5369 --lr=1e-6 --epochs=10 --log_steps=200
 
-python3 prose-to-poetry/train.py --model='qwen' --save_steps=2000 --from_pretrain=output/qwen-05-22-17-18-pretrain/checkpoint-10738 --epochs=5 --log_steps=200 --markup=rhyme_markup --warmup_steps=30 --lr=1e-6
+python3 prose-to-poetry/train.py --model='qwen' --save_steps=2000 --from_pretrain=output/qwen-05-22-17-18-pretrain/checkpoint-10738 --epochs=3 --log_steps=200 --markup=rhyme_markup --warmup_steps=30 --lr=1e-6
 
 23 - stanzas
 
