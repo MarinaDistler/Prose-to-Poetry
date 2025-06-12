@@ -104,7 +104,7 @@ def make_metric_fn():
 
 def create_rpst():
     rpst = russian_scansion.create_rpst_instance('./models/RussianPoetryScansionTools/models')
-    rpst.max_words_per_line = 100
+    rpst.max_words_per_line = 30
     rpst.enable_dolnik = False
     return rpst
 
