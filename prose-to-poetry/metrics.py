@@ -119,7 +119,7 @@ def get_meter_score(lines, meter, rpst):
         return scansion.score
     except Exception as e:
         print(f"error in meter aligment: {e}")
-        return 0.
+        return np.nan
 
 rpst = None
 
