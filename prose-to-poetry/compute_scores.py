@@ -48,7 +48,7 @@ def eval_poetry(inputs, outputs):
             'BERTscore': np.mean(bertscore_["f1"]),
             'rhyme_score': np.mean(rhyme_scores),
             'meter_score': np.mean(meter_scores),
-            'meter_score_done': np.mean(~np.isnan(meter_scores2)),
+            'meter_score_done': np.mean(~np.isnan(meter_scores)),
             'len_score': np.mean(len_scores),
         }
         result.loc[name] = res
