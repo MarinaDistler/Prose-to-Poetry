@@ -47,7 +47,7 @@ class BaseModel:
         )
         self.tokenizer = AutoTokenizer.from_pretrained(path)
 
-    def use(self, text, scheme='ABAB', meter='ямб'):
+    def use(self, text, scheme='ABAB', meter='ямб', clean=True):
         self.model.eval()
         system_instruction_ = system_instruction
         text_ = text
@@ -82,7 +82,8 @@ class BaseModel:
 
         response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=False)[0]
         response = response.replace("<|im_start|>assistant\n", "").replace("<|im_end|>", "").replace("<|endoftext|>", "")
-        response = clean_responses([response])[0]
+        if clean:
+            response = clean_responses([response])[0]
         return response
 
 class ModelQwen(BaseModel):

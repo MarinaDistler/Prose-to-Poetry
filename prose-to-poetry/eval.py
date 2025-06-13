@@ -40,7 +40,7 @@ def main(args):
     result = []
 
     for _, row in tqdm(eval_data.iterrows()):
-        result.append(model.use(row['text'], row['rhyme_scheme'], row['meter']))
+        result.append(model.use(row['text'], row['rhyme_scheme'], row['meter'], clean=not args.not_clean))
 
     df = pd.DataFrame({args.name: result}, index=eval_data.index)
     df.to_csv(args.output_dir + f'{args.name}.csv')
@@ -53,6 +53,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_dir', type=str, default='output/')
     parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
     parser.add_argument('--generate', action='store_true', help='Если установлен, то запусткаентся генерация стихов.')
+    parser.add_argument('--not_clean', action='store_true', help='Если установлен, то вывод не очичается от всех тегов.')
     parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'stress_markup', 'stanzas','rhyme_stress_markup'])
 
     args, unknown1 = parser.parse_known_args()
