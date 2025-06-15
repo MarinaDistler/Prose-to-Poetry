@@ -108,14 +108,9 @@ def create_rpst():
     rpst.enable_dolnik = False
     return rpst
 
-def get_meter_score(lines, meter, rpst):
-    rpst.meters = [meter_names_to_russian[meter]]
+def get_total_score(lines, rpst):
     try: 
         scansion = rpst.align(lines)
-        meter = meter_names_to_russian[meter][0]
-        if scansion.meter != meter:
-            print(f"external code returned meter {scansion.meter} instead of {meter}")
-            return 0.
         return scansion.score
     except Exception as e:
         print(f"error in meter aligment: {e}")
@@ -123,11 +118,10 @@ def get_meter_score(lines, meter, rpst):
 
 rpst = None
 
-def get_meter_score_isolated(
+def get_total_score_isolated(
     lines,
-    meter
 ):
     global rpst
     if rpst is None:
         rpst = create_rpst()   
-    return get_meter_score(lines, meter, rpst)
+    return get_meter_score(lines, rpst)
