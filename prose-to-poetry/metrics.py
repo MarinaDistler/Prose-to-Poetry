@@ -124,4 +124,4 @@ def get_total_score_isolated(
     global rpst
     if rpst is None:
         rpst = create_rpst()   
-    return get_meter_score(lines, rpst)
+    return get_total_score(lines, rpst)
