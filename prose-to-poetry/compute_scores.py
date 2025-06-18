@@ -9,10 +9,8 @@ import numpy as np
 bertscore = load("bertscore")
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from models import ModelTLite, ModelQwen
-from promts import format_chat_template 
 from util import print_options
-from metrics import check_rhyme_scheme, get_total_score_isolated
+from metrics import check_rhyme_scheme, check_meter
 
 def filter_lines(text):
     lines = []
@@ -30,25 +28,23 @@ def check_len(lines):
     return 0.
 
 def eval_poetry(inputs, outputs):
-    result = pd.DataFrame(columns=['BERTscore', 'rhyme_score', 'meter_score', 'meter_score_done', 'len_score'])
+    result = pd.DataFrame(columns=['BERTscore', 'rhyme_score', 'meter_score', 'len_score'])
     for name, outputs_ in outputs.items():
         bertscore_ = bertscore.compute(predictions=outputs_, references=inputs['text'], lang="ru")
         rhyme_scores = []
-        total_scores = []
+        meter_scores = []
         len_scores = []
         for i, output in tqdm(enumerate(outputs_)):
             lines = filter_lines(output)
             len_scores.append(check_len(lines))
             lines = lines[:8]
             rhyme_scores.append(check_rhyme_scheme(lines, inputs.iloc[i]['rhyme_scheme']))
-            total_scores.append(get_total_score_isolated(lines))
+            meter_scores.append(check_meter(lines, inputs.iloc[i]['meter']))
             
-        total_scores = np.array(total_scores)
         res = {
             'BERTscore': np.mean(bertscore_["f1"]),
             'rhyme_score': np.mean(rhyme_scores),
-            'total_score': np.mean(total_scores[~np.isnan(total_scores)]),
-            'total_score_done': np.mean(~np.isnan(total_scores)),
+            'meter_score': np.mean(meter_scores),
             'len_score': np.mean(len_scores),
         }
         result.loc[name] = res

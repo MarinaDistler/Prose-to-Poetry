@@ -1,25 +1,31 @@
 from rhymetagger import RhymeTagger
 import nltk
-import torch
-import russian_scansion
-import multiprocessing
-import sys
 import os
-import time
-import numpy as np
+import sys
+
+current_dir = os.path.dirname(__file__)  # Папка, где лежит текущий скрипт
+external_code_path = os.path.abspath(os.path.join(current_dir, '..', 'external_code', 'verslibre', 'py'))
+sys.path.append(external_code_path)
+from poetry.phonetic import Accents
+from generative_poetry.metre_classifier import ErrorsTable, MetreClassifier, \
+                PatternAnalyzer, StressPredictorAdapter, Markup
 
 nltk.download('punkt_tab')
 
 rt = RhymeTagger()
 rt.load_model(model='ru')  # Загрузка русской модели рифм
 
-meter_names_to_russian = {
-    "iambos": ('ямб', (0, 1)),
-    "choreios": ('хорей', (1, 0)),
-    "daktylos": ('дактиль', (1, 0, 0)),
-    "amphibrachys": ('амфибрахий', (0, 1, 0)),
-    "anapaistos": ('анапест', (0, 0, 1)),
-}
+proj_dir = 'external_code/verslibre'
+tmp_dir = os.path.join(proj_dir, 'tmp')
+data_dir = os.path.join(proj_dir, 'data')
+models_dir = os.path.join(proj_dir, 'models')
+
+accents = Accents()
+accents.load_pickle(os.path.join(tmp_dir, 'accents.pkl'))
+accents.after_loading(os.path.join(tmp_dir, 'stress_model'))
+
+stress_predictor = StressPredictorAdapter(accents)
+
 
 def check_rhyme_scheme(lines, scheme="ABAB"):
     rhymes = rt.tag(lines, output_format=1)
@@ -102,26 +108,51 @@ def make_metric_fn():
     return ComputeAggMetrics()
 
 
-def create_rpst():
-    rpst = russian_scansion.create_rpst_instance('./models/RussianPoetryScansionTools/models')
-    rpst.max_words_per_line = 30
-    rpst.enable_dolnik = False
-    return rpst
+def find_errors_meter(markup):
+    num_lines = len(markup.lines)
+    errors_table = ErrorsTable(num_lines)
+    for l, line in enumerate(markup.lines):
+        for metre_name, metre_pattern in MetreClassifier.metres.items():
+            line_syllables_count = sum([len(word.syllables) for word in line.words])
 
-def get_total_score(lines, rpst):
-    try: 
-        scansion = rpst.align(lines)
-        return scansion.score
-    except Exception as e:
-        print(f"error in meter aligment: {e}")
-        return np.nan
+            # Строчки длиной больше border_syllables_count слогов не обрабатываем.
+            if line_syllables_count > MetreClassifier.border_syllables_count or line_syllables_count == 0:
+                continue
+            error_border = 7
+            if metre_name == "dolnik2" or metre_name == "dolnik3":
+                error_border = 3
+            if metre_name == "taktovik2" or metre_name == "taktovik3":
+                error_border = 2
+            pattern, strong_errors, weak_errors, analysis_errored = \
+                PatternAnalyzer.count_errors(MetreClassifier.metres[metre_name],
+                                             MetreClassifier._MetreClassifier__get_line_pattern(line),
+                                             error_border)
+            #print(MetreClassifier._MetreClassifier__get_line_pattern(line))
+            if analysis_errored or len(pattern) == 0:
+                errors_table.add_record(metre_name, l, strong_errors, weak_errors, pattern, True)
+                continue
+            #corrections = MetreClassifier._MetreClassifier__get_line_pattern_matching_corrections(line, l, pattern)[0]
+            #accentuation_errors = len(corrections)
+            #strong_errors += accentuation_errors
+            errors_table.add_record(metre_name, l, strong_errors, weak_errors, pattern)
+    return errors_table
 
-rpst = None
+def check_meter(lines, meter_name):
+    score = 0.
+    for line in lines:
+        markup = Markup.process_text(line, stress_predictor)  
+        errors = find_errors_meter(markup).data[meter_name]
+        weak = errors[0].weak_errors
+        strong = errors[0].strong_errors
+        count_syllables = sum([len(word.syllables) for word in markup.lines[0].words])
+        if count_syllables > 0:
+            score += (strong + weak) / float(count_syllables)
+            if strong + weak > count_syllables:
+                print('error')
+                print(line)
+    return score / len(lines)
 
-def get_total_score_isolated(
-    lines,
-):
-    global rpst
-    if rpst is None:
-        rpst = create_rpst()   
-    return get_total_score(lines, rpst)
+def get_meter(lines):
+    markup = Markup.process_text(lines, stress_predictor)  
+    errors = find_errors_meter(markup)
+    return errors.get_best_metre()

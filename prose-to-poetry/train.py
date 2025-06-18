@@ -191,7 +191,7 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoint', type=str, default='')
     parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
     parser.add_argument('--epochs', type=int, default=10)
-    parser.add_argument('--lr', type=float, default=3e-5)
+    parser.add_argument('--lr', type=float, default=2e-5)
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--save_steps', type=int, default=2000)
     parser.add_argument('--warmup_steps', type=int, default=100)

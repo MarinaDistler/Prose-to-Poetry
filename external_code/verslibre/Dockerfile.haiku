@@ -1,0 +1,54 @@
+FROM python:3.7-slim
+
+SHELL ["/bin/bash", "-c"]
+
+# Default to UTF-8 file.encoding
+ENV LANG C.UTF-8
+
+RUN apt-get update
+RUN apt-get install -y python python3-pip
+RUN apt-get -y install git-core
+RUN apt-get install -y liblzma-dev
+
+RUN pip install --upgrade pip
+RUN pip install --upgrade setuptools
+
+RUN pip install torch absl-py transformers coloredlogs python-telegram-bot==13.10 pyconll ufal.udpipe pillow networkx
+
+RUN apt-get clean
+
+RUN mkdir -p /text_generator/tmp
+
+
+WORKDIR /text_generator/py
+COPY ./py/antiplagiat.py ./
+
+WORKDIR /text_generator/tmp
+COPY ./tmp/thesaurus.pkl ./
+
+WORKDIR /text_generator/py/generative_poetry
+COPY ./py/generative_poetry/rugpt_generator.py ./
+COPY ./py/generative_poetry/poetry_seeds.py ./
+COPY ./py/generative_poetry/init_logging.py ./
+COPY ./py/generative_poetry/is_good_haiku.py ./
+COPY ./py/generative_poetry/udpipe_parser.py ./
+COPY ./py/generative_poetry/thesaurus.py ./
+
+WORKDIR /text_generator/py/generative_poetry/deployment/telegram
+COPY ./py/generative_poetry/deployment/telegram/run_haiku_generator.py ./
+
+WORKDIR /text_generator/scripts/
+COPY ./scripts/haiku_tg.sh ./
+
+WORKDIR /text_generator/models/rugpt_haiku_generator
+COPY ./models/rugpt_haiku_generator/* ./
+
+WORKDIR /text_generator/models
+COPY ./models/seeds.pkl ./
+COPY ./models/udpipe_syntagrus.model ./
+COPY ./models/word2lemma.pkl ./
+
+WORKDIR /text_generator/py/generative_poetry
+CMD "/text_generator/scripts/haiku_tg.sh"
+
+WORKDIR /text_generator

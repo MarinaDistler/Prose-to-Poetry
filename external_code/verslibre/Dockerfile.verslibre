@@ -1,0 +1,90 @@
+FROM python:3.7-slim
+
+SHELL ["/bin/bash", "-c"]
+
+# Default to UTF-8 file.encoding
+ENV LANG C.UTF-8
+
+RUN apt-get update
+RUN apt-get install -y python python3-pip
+RUN apt-get -y install git-core
+RUN apt-get install -y liblzma-dev
+
+RUN pip install --upgrade pip setuptools
+RUN pip install torch tensorflow transformers pyconll ufal.udpipe stanza fasttext nltk sentencepiece coloredlogs python-telegram-bot jellyfish hyperopt jsonpickle
+
+
+WORKDIR /home
+
+RUN pip install git+https://github.com/Koziev/rutokenizer
+RUN pip install git+https://github.com/Koziev/rusyllab
+
+RUN apt-get clean
+
+WORKDIR /text_generator/py/generative_poetry
+COPY ./py/generative_poetry/run_stressed_gpt_poetry_generation_v3.py ./
+COPY ./py/generative_poetry/long_poem_generator2.py ./
+COPY ./py/generative_poetry/init_logging.py ./
+COPY ./py/generative_poetry/poetry_seeds.py ./
+COPY ./py/generative_poetry/udpipe_parser.py ./
+COPY ./py/generative_poetry/poetry_alignment.py ./
+COPY ./py/generative_poetry/metre_classifier.py ./
+COPY ./py/generative_poetry/poetry_generator_core.py ./
+COPY ./py/generative_poetry/stanza_parser.py ./
+COPY ./py/generative_poetry/whitespace_normalization.py ./
+
+WORKDIR /text_generator/py/generative_poetry/experiments/rugpt_with_stress
+COPY ./py/generative_poetry/experiments/rugpt_with_stress/break_to_syllables.py ./
+COPY ./py/generative_poetry/experiments/rugpt_with_stress/arabize.py ./
+COPY ./py/generative_poetry/experiments/rugpt_with_stress/stressed_gpt_tokenizer.py ./
+
+
+WORKDIR /text_generator/py/poetry
+COPY ./py/poetry/*.py ./
+
+WORKDIR /text_generator/py/transcriptor_models
+COPY ./py/transcriptor_models/*.py ./
+
+WORKDIR /text_generator/py/transcriptor_models/stress_model
+COPY ./py/transcriptor_models/stress_model/*.py ./
+
+
+WORKDIR /text_generator/models/
+COPY ./models/udpipe_syntagrus.model ./
+
+WORKDIR /text_generator/data/poetry/dict
+COPY ./data/poetry/dict/collocation_accents.dat ./
+COPY ./data/poetry/dict/bad_signature1.dat ./
+COPY ./data/poetry/dict/bad_alignment2.dat ./
+
+
+WORKDIR /text_generator/tmp
+COPY ./tmp/accents.pkl ./
+
+
+
+WORKDIR /text_generator/tmp/stress_model
+COPY ./tmp/stress_model/*.* ./
+
+WORKDIR /text_generator/tmp/stress_model/nn_stress.model/variables
+COPY ./tmp/stress_model/nn_stress.model/variables/* ./
+
+WORKDIR /text_generator/tmp/stress_model/nn_stress.model
+COPY ./tmp/stress_model/nn_stress.model/*.pb ./
+
+
+WORKDIR /text_generator/scripts/
+COPY ./scripts/verslibre_tg.sh ./
+
+
+WORKDIR /text_generator/models/stressed_long_poetry_generator_medium
+COPY ./models/stressed_long_poetry_generator_medium/* ./
+
+WORKDIR /text_generator/models
+COPY ./models/seeds.pkl ./
+
+
+WORKDIR /text_generator/py/generative_poetry
+CMD "/text_generator/scripts/verslibre_tg.sh"
+
+WORKDIR /text_generator
