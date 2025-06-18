@@ -47,14 +47,14 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='eval model')
-    parser.add_argument('--name', type=str, default='t-lite')
-    parser.add_argument('--test_dataset', type=str, default='dataset/prosa_test_text.csv')
-    parser.add_argument('--checkpoint', type=str, default='')
-    parser.add_argument('--output_dir', type=str, default='output/')
-    parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'])
-    parser.add_argument('--generate', action='store_true', help='Если установлен, то запусткаентся генерация стихов.')
-    parser.add_argument('--not_clean', action='store_true', help='Если установлен, то вывод не очичается от всех тегов.')
-    parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'stress_markup', 'stanzas','rhyme_stress_markup'])
+    parser.add_argument('--name', type=str, default='t-lite', help='Saves the name.csv file with one column: name')
+    parser.add_argument('--test_dataset', type=str, default='dataset/prosa_test_text.csv', help='Path to test dataset')
+    parser.add_argument('--checkpoint', type=str, default='', help='Path to model checkpoint')
+    parser.add_argument('--output_dir', type=str, default='output/', help='Output directory for results')
+    parser.add_argument('--model', type=str, default='t-lite', choices=['t-lite', 'qwen'], help="Model type: 't-lite' or 'qwen'")
+    parser.add_argument('--generate', action='store_true', help='If set, runs poetry generation instead of prose-to-poetry conversion')
+    parser.add_argument('--not_clean', action='store_true', help='If set, disables postprocessing (doesn`t clean the output from markup)')
+    parser.add_argument('--markup', type=str, default='stanzas', choices=['rhyme_markup', 'stress_markup', 'stanzas','rhyme_stress_markup'], help='The used markup')
 
     args, unknown1 = parser.parse_known_args()
 

@@ -72,9 +72,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='eval model')
-    parser.add_argument('--test_dataset', type=str, default='dataset/prosa_test_text.csv')
-    parser.add_argument('--input_dir', type=str, default='output/models_output/')
-    parser.add_argument('--output_dir', type=str, default='output/')
+    parser.add_argument('--test_dataset', type=str, default='dataset/prosa_test_text.csv', help='Path to the test prose dataset')
+    parser.add_argument('--input_dir', type=str, default='output/models_output/', help='Directory containing model outputs')
+    parser.add_argument('--output_dir', type=str, default='output/', help='Where to save computed metrics')
 
     args, unknown1 = parser.parse_known_args()
 
