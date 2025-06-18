@@ -16,7 +16,8 @@ It leverages large language models (Qwen) with fine-tuning and markup to control
 | `Qwen_R_S`   | 0.670           | 0.168             | 0.338               | 0.841              |
 | `Qwen_R_S_G` | 0.590           | 0.343             | 0.313               | 0.990              |
 | `Qwen_S`     | 0.704           | 0.046             | 0.329               | 0.936              |
-| `Qwen_S_G`   | 0.597           | 0.089             | **0.272**           | 0.983              |
+| `Qwen_S_G`   | 0.597           | 0.089             | 0.272           | 0.983              |
+
 
 > *Legend:*
 > - `Gemini` = Gemini-2.0-Flash
@@ -98,7 +99,7 @@ python3 prose-to-poetry/train.py \
 
 > **Note**: For **stress** and **rhyme\_stress** markups, I used **only 1 epoch** for pretraining.
 
-### 🔧 Finetune (on prose-to-verse pairs)
+### Finetune (on prose-to-verse pairs)
 
 ```bash
 python3 prose-to-poetry/train.py \
@@ -113,7 +114,7 @@ python3 prose-to-poetry/train.py \
   --lr=5e-6
 ```
 
-### 📤 Evaluate
+### Evaluate
 
 #### Prose-to-verse generation (default)
 
